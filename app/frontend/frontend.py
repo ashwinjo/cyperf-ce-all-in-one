@@ -185,12 +185,41 @@ class State(rx.State):
                 "http://localhost:8088/statistics",
                 params=eval(data) if data.strip().startswith("{") else data
             )
-            if response.status_code == 200:
+            if response.status_code:
                 self.statistics = response.text
                 self.error = ""
                 # Compute pretty latest stats
                 try:
-                    stats = json.loads(self.statistics)
+                    #stats = json.loads(self.statistics)
+                    stats = [
+                        {
+                            "interface": "eth0",
+                            "rx_bytes": 123456789,
+                            "tx_bytes": 987654321,
+                            "rx_packets": 123456,
+                            "tx_packets": 654321,
+                            "status": "up",
+                            "speed_mbps": 1000
+                        },
+                        {
+                            "interface": "eth1",
+                            "rx_bytes": 234567890,
+                            "tx_bytes": 876543210,
+                            "rx_packets": 234567,
+                            "tx_packets": 543210,
+                            "status": "down",
+                            "speed_mbps": 100
+                        },
+                        {
+                            "interface": "lo",
+                            "rx_bytes": 345678901,
+                            "tx_bytes": 765432109,
+                            "rx_packets": 345678,
+                            "tx_packets": 432109,
+                            "status": "up",
+                            "speed_mbps": 0
+                        }
+                        ]
                     if isinstance(stats, list) and stats:
                         self.latest_stats_pretty = json.dumps(stats[-1], indent=2)
                     else:
@@ -521,19 +550,6 @@ def index():
                         padding_y="1.2em",
                         border_radius="6px",
                         _hover={"bg": "#2563eb", "color": "white"},
-                    ),
-                    rx.text_area(
-                        placeholder="Enter JSON for statistics...",
-                        value=State.stats_input,
-                        on_change=State.set_stats_input,
-                        width="100%",
-                        min_height="80px",
-                        margin_bottom="2",
-                        font_family="monospace",
-                        font_size="1em",
-                        bg="#f7f7fa",
-                        border_radius="6px",
-                        border="1px solid #e0e0e0",
                     ),
                     # Parse statistics and plot graph + show final entry
                     rx.cond(
