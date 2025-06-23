@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import router as api_router
+import uvicorn
 
 app = FastAPI(
     title="REST Powered Cyperf CE Controller",
@@ -22,5 +22,4 @@ app.add_middleware(
 app.include_router(api_router, prefix="/api")
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8088)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
