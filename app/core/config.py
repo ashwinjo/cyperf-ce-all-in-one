@@ -1,10 +1,10 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    SERVER_IP: str = "3.238.53.158"
-    CLIENT_IP: str = "44.249.23.125"
-    SSH_USERNAME: str = "ubuntu"
-    SSH_KEY_PATH: str = "/Users/ashwjosh/vibecode.pem"
+    SERVER_IP: str
+    CLIENT_IP: str
+    SSH_USERNAME: str
+    SSH_KEY_PATH: str
 
     class Config:
         env_file = ".env"
