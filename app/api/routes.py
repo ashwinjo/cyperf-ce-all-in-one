@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from app.api.models import ServerRequest, ClientRequest, TestResponse
 from app.services.cyperf_service import CyperfService
 import uuid
+from fastapi.responses import StreamingResponse
 
 router = APIRouter()
 cyperf_service = CyperfService()
@@ -58,6 +59,24 @@ async def stop_server():
     try:
         result = cyperf_service.stop_server()
         return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/server/stats_image/{test_id}", tags=["Cyperf CE Server"])
+async def get_server_stats_image(test_id: str):
+    try:
+        stats = cyperf_service.get_server_stats(test_id)
+        img_bytes = cyperf_service.stats_to_image(stats)
+        return StreamingResponse(img_bytes, media_type="image/png")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/client/stats_image/{test_id}", tags=["Cyperf CE Client"])
+async def get_client_stats_image(test_id: str):
+    try:
+        stats = cyperf_service.get_client_stats(test_id)
+        img_bytes = cyperf_service.stats_to_image(stats)
+        return StreamingResponse(img_bytes, media_type="image/png")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -3,6 +3,9 @@ from typing import Dict, Any
 from app.core.config import settings
 import re
 import csv
+import pandas as pd
+import matplotlib.pyplot as plt
+from io import BytesIO
 
 class CyperfService:
     def __init__(self):
@@ -136,5 +139,53 @@ class CyperfService:
         sftp.close()
         ssh.close()
         return stats
+
+    ALLOWED_KEYS = [
+        "Timestamp",
+        "Throughput",
+        "ThroughputTX",
+        "ThroughputRX",
+        "TCPDataThroughput",
+        "TCPDataThroughputTX",
+        "TCPDataThroughputRX",
+        "ParallelClientSessions",
+        "ActiveConnections",
+        "ConnectionsSucceeded",
+        "ConnectionsFailed",
+        "ConnectionsAccepted",
+        "ConnectionRate",
+        "AverageConnectionLatency",
+    ]
+
+    def stats_to_image(self, stats: list) -> BytesIO:
+        # Filter each dictionary to only include allowed keys
+        filtered_stats = [
+            {k: d.get(k, "") for k in self.ALLOWED_KEYS}
+            for d in stats
+        ]
+        df = pd.DataFrame(filtered_stats)
+        fig_width = max(16, min(2.5 * len(df.columns), 48))
+        fig_height = max(4, min(0.8 * len(df), 36))
+        fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+        ax.axis('off')
+        tbl = ax.table(cellText=df.values, colLabels=df.columns, loc='center')
+        tbl.auto_set_font_size(False)
+        tbl.set_fontsize(16)
+        tbl.scale(1.4, 1.4)
+
+        # Adjust column widths based on header text length
+        for i, key in enumerate(df.columns):
+            col_width = max(0.15, min(len(str(key)) * 0.13, 0.5))  # Adjust these factors as needed
+            tbl.auto_set_column_width([i])
+            for j in range(len(df) + 1):  # +1 for header
+                cell = tbl[(j, i)]
+                cell.set_width(col_width)
+
+        plt.tight_layout()
+        img_bytes = BytesIO()
+        plt.savefig(img_bytes, format='png', bbox_inches='tight')
+        plt.close(fig)
+        img_bytes.seek(0)
+        return img_bytes
 
 
