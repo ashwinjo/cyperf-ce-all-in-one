@@ -11,11 +11,18 @@ class CyperfService:
     def _connect_ssh(self, hostname: str):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(
-            hostname=hostname,
-            username=settings.SSH_USERNAME,
-            key_filename=settings.SSH_KEY_PATH
-        )
+        if settings.SSH_PASSWORD:
+            ssh.connect(
+                hostname=hostname,
+                username=settings.SSH_USERNAME,
+                password=settings.SSH_PASSWORD
+            )
+        else:
+            ssh.connect(
+                hostname=hostname,
+                username=settings.SSH_USERNAME,
+                key_filename=settings.SSH_KEY_PATH
+            )
         return ssh
 
     def start_server(self, test_id: str, params: Dict[str, Any]) -> Dict[str, Any]:
