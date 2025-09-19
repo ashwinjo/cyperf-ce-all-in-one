@@ -416,10 +416,13 @@ class MCPSSEServer:
             },
             {
                 "name": "stop_server",
-                "description": "Stop all running Cyperf servers",
+                "description": "Stop all running Cyperf servers on a specific machine",
                 "inputSchema": {
                     "type": "object",
-                    "properties": {}
+                    "properties": {
+                        "server_ip": {"type": "string", "description": "IP address of the server machine where Cyperf servers should be stopped"}
+                    },
+                    "required": ["server_ip"]
                 }
             }
         ]
@@ -562,13 +565,14 @@ class MCPSSEServer:
 
     async def _proxy_stop_server(self, arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Proxy server stop to main FastAPI app"""
-        response = await self.client.delete(f"{FASTAPI_BASE_URL}/api/server/cleanup")
+        server_ip = arguments["server_ip"]
+        response = await self.client.delete(f"{FASTAPI_BASE_URL}/api/server/cleanup", json={"server_ip": server_ip})
         response.raise_for_status()
         result = response.json()
         
         return [{
             "type": "text",
-            "text": f"Server cleanup completed: {json.dumps(result, indent=2)}"
+            "text": f"Server cleanup completed on {server_ip}: {json.dumps(result, indent=2)}"
         }]
 
     def run(self, host: str = "0.0.0.0", port: int = 8001):

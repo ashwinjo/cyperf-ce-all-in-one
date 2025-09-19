@@ -97,10 +97,13 @@ def _get_mcp_tools() -> List[Dict[str, Any]]:
         },
         {
             "name": "stop_server",
-            "description": "Stop all running Cyperf servers",
+            "description": "Stop all running Cyperf servers on a specific machine",
             "inputSchema": {
                 "type": "object",
-                "properties": {}
+                "properties": {
+                    "server_ip": {"type": "string", "description": "IP address of the server machine where Cyperf servers should be stopped"}
+                },
+                "required": ["server_ip"]
             }
         }
     ]
@@ -250,9 +253,10 @@ async def _mcp_get_client_stats_image(arguments: Dict[str, Any]) -> List[Dict[st
 
 async def _mcp_stop_server(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Stop server via MCP"""
-    result = cyperf_service.stop_server()
+    server_ip = arguments["server_ip"]
+    result = cyperf_service.stop_server(server_ip)
     
     return [{
         "type": "text",
-        "text": f"Server cleanup completed: {json.dumps(result, indent=2)}"
+        "text": f"Server cleanup completed on {server_ip}: {json.dumps(result, indent=2)}"
     }]

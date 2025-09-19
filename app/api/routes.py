@@ -57,9 +57,11 @@ async def get_client_stats(test_id: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.delete("/server/cleanup", tags=["Cyperf CE Server"])
-async def stop_server():
+async def stop_server(request: Request):
     try:
-        result = cyperf_service.stop_server()
+        body = await request.json()
+        server_ip = body["server_ip"]
+        result = cyperf_service.stop_server(server_ip)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

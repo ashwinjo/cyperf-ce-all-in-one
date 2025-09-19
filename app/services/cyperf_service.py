@@ -95,14 +95,14 @@ class CyperfService:
                 "command": command, 
                 "client_csv_path": f"{test_id}_client.csv"}
 
-    def stop_server(self) -> Dict[str, Any]:
-        ssh = self._connect_ssh(settings.SERVER_IP)
+    def stop_server(self, server_ip: str) -> Dict[str, Any]:
+        ssh = self._connect_ssh(server_ip)
         pids = "sudo ps aux | grep -i \"[c]yperf\|[s]erver\" | awk '{print $2}'"
         ssh.exec_command(pids)
         kill_cmd = "sudo ps aux | grep -i \"[c]yperf\|[s]erver\" | awk '{print $2}' | sudo xargs kill -9"
         ssh.exec_command(kill_cmd)
         ssh.close()
-        return {"cyperf_server_pids_killed": "true"}
+        return {"cyperf_server_pids_killed": "true", "server_ip": server_ip}
         
     def get_server_stats(self, test_id: str):
         if test_id not in self.active_tests:

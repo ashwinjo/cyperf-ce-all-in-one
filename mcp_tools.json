@@ -170,9 +170,15 @@
     },
     {
       "name": "stop_server",
-      "description": "Stop all running Cyperf servers",
+      "description": "Stop all running Cyperf servers on a specific machine",
       "category": "server",
-      "parameters": {}
+      "parameters": {
+        "server_ip": {
+          "type": "string",
+          "description": "IP address of the server machine where Cyperf servers should be stopped",
+          "required": true
+        }
+      }
     }
   ],
   "examples": [
@@ -204,6 +210,14 @@
       "tool": "get_server_stats",
       "parameters": {
         "test_id": "abc123-def456"
+      }
+    },
+    {
+      "title": "Stop Server",
+      "description": "Stop all Cyperf servers on a specific machine",
+      "tool": "stop_server",
+      "parameters": {
+        "server_ip": "192.168.1.100"
       }
     }
   ]
