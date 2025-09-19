@@ -20,11 +20,13 @@ class ClientParams(BaseModel):
     interval: Optional[int] = None
 
 class ServerRequest(BaseModel):
+    server_ip: str
     params: ServerParams
 
 class ClientRequest(BaseModel):
     test_id: str
     server_ip: str
+    client_ip: str
     params: ClientParams
 
 class TestResponse(BaseModel):

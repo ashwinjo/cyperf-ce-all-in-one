@@ -338,11 +338,13 @@ class MCPSSEServer:
                 "inputSchema": {
                     "type": "object",
                     "properties": {
+                        "server_ip": {"type": "string", "description": "IP address of the server machine where Cyperf server will run"},
                         "cps": {"type": "boolean", "description": "Enable connection per second mode", "default": False},
                         "port": {"type": "integer", "description": "Server port", "default": 5202},
                         "length": {"type": "string", "description": "Packet length (e.g., '1k', '64k')", "default": "1k"},
                         "csv_stats": {"type": "boolean", "description": "Enable CSV statistics output", "default": True}
-                    }
+                    },
+                    "required": ["server_ip"]
                 }
             },
             {
@@ -353,6 +355,7 @@ class MCPSSEServer:
                     "properties": {
                         "test_id": {"type": "string", "description": "Test ID from the server start operation"},
                         "server_ip": {"type": "string", "description": "IP address of the Cyperf server"},
+                        "client_ip": {"type": "string", "description": "IP address of the client machine where Cyperf client will run"},
                         "cps": {"type": "string", "description": "Connection per second rate"},
                         "port": {"type": "integer", "description": "Server port to connect to", "default": 5202},
                         "length": {"type": "string", "description": "Packet length (e.g., '1k', '64k')", "default": "1k"},
@@ -364,7 +367,7 @@ class MCPSSEServer:
                         "bidi": {"type": "boolean", "description": "Enable bidirectional mode", "default": False},
                         "interval": {"type": "integer", "description": "Statistics reporting interval in seconds"}
                     },
-                    "required": ["test_id", "server_ip"]
+                    "required": ["test_id", "server_ip", "client_ip"]
                 }
             },
             {
@@ -444,6 +447,7 @@ class MCPSSEServer:
     async def _proxy_start_server(self, arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Proxy server start to main FastAPI app"""
         payload = {
+            "server_ip": arguments["server_ip"],
             "params": {
                 "cps": arguments.get("cps", False),
                 "port": arguments.get("port", 5202),
@@ -470,6 +474,7 @@ class MCPSSEServer:
         payload = {
             "test_id": arguments["test_id"],
             "server_ip": arguments["server_ip"],
+            "client_ip": arguments["client_ip"],
             "params": {
                 "cps": arguments.get("cps"),
                 "port": arguments.get("port", 5202),

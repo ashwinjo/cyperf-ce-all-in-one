@@ -19,11 +19,13 @@ def _get_mcp_tools() -> List[Dict[str, Any]]:
             "inputSchema": {
                 "type": "object",
                 "properties": {
+                    "server_ip": {"type": "string", "description": "IP address of the server machine where Cyperf server will run"},
                     "cps": {"type": "boolean", "description": "Enable connection per second mode", "default": False},
                     "port": {"type": "integer", "description": "Server port", "default": 5202},
                     "length": {"type": "string", "description": "Packet length (e.g., '1k', '64k')", "default": "1k"},
                     "csv_stats": {"type": "boolean", "description": "Enable CSV statistics output", "default": True}
-                }
+                },
+                "required": ["server_ip"]
             }
         },
         {
@@ -34,6 +36,7 @@ def _get_mcp_tools() -> List[Dict[str, Any]]:
                 "properties": {
                     "test_id": {"type": "string", "description": "Test ID from the server start operation"},
                     "server_ip": {"type": "string", "description": "IP address of the Cyperf server"},
+                    "client_ip": {"type": "string", "description": "IP address of the client machine where Cyperf client will run"},
                     "cps": {"type": "string", "description": "Connection per second rate"},
                     "port": {"type": "integer", "description": "Server port to connect to", "default": 5202},
                     "length": {"type": "string", "description": "Packet length (e.g., '1k', '64k')", "default": "1k"},
@@ -45,7 +48,7 @@ def _get_mcp_tools() -> List[Dict[str, Any]]:
                     "bidi": {"type": "boolean", "description": "Enable bidirectional mode", "default": False},
                     "interval": {"type": "integer", "description": "Statistics reporting interval in seconds"}
                 },
-                "required": ["test_id", "server_ip"]
+                "required": ["test_id", "server_ip", "client_ip"]
             }
         },
         {
@@ -126,6 +129,7 @@ async def _handle_mcp_tool_call(tool_name: str, arguments: Dict[str, Any]) -> Li
 
 async def _mcp_start_server(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Start Cyperf server via MCP"""
+    server_ip = arguments["server_ip"]
     payload = {
         "params": {
             "cps": arguments.get("cps", False),
@@ -137,12 +141,13 @@ async def _mcp_start_server(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
     
     # Call the service directly
     test_id = str(__import__('uuid').uuid4())
-    result = cyperf_service.start_server(test_id, payload["params"])
+    result = cyperf_service.start_server(test_id, server_ip, payload["params"])
     
     return [{
         "type": "text",
         "text": f"Server started successfully!\n"
                f"Test ID: {test_id}\n"
+               f"Server IP: {server_ip}\n"
                f"Server PID: {result['server_pid']}\n"
                f"Status: SERVER_RUNNING\n"
                f"Message: Cyperf server started. Use test_id for all related operations."
@@ -153,6 +158,7 @@ async def _mcp_start_client(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Start Cyperf client via MCP"""
     test_id = arguments["test_id"]
     server_ip = arguments["server_ip"]
+    client_ip = arguments["client_ip"]
     params = {
         "cps": arguments.get("cps"),
         "port": arguments.get("port", 5202),
@@ -166,12 +172,14 @@ async def _mcp_start_client(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
         "interval": arguments.get("interval")
     }
     
-    result = cyperf_service.start_client(test_id, server_ip, params)
+    result = cyperf_service.start_client(test_id, server_ip, client_ip, params)
     
     return [{
         "type": "text",
         "text": f"Client started successfully!\n"
                f"Test ID: {test_id}\n"
+               f"Server IP: {server_ip}\n"
+               f"Client IP: {client_ip}\n"
                f"Client PID: {result['client_pid']}\n"
                f"Status: CLIENT_RUNNING\n"
                f"Message: Cyperf client started and linked to server."

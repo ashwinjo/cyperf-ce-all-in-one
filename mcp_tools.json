@@ -10,6 +10,11 @@
       "description": "Start a Cyperf CE server with specified parameters",
       "category": "server",
       "parameters": {
+        "server_ip": {
+          "type": "string",
+          "description": "IP address of the server machine where Cyperf server will run",
+          "required": true
+        },
         "cps": {
           "type": "boolean",
           "description": "Enable connection per second mode",
@@ -49,6 +54,11 @@
         "server_ip": {
           "type": "string",
           "description": "IP address of the Cyperf server",
+          "required": true
+        },
+        "client_ip": {
+          "type": "string",
+          "description": "IP address of the client machine where Cyperf client will run",
           "required": true
         },
         "cps": {
@@ -171,6 +181,7 @@
       "description": "Start a basic Cyperf server",
       "tool": "start_cyperf_server",
       "parameters": {
+        "server_ip": "192.168.1.100",
         "port": 5202,
         "csv_stats": true
       }
@@ -182,6 +193,7 @@
       "parameters": {
         "test_id": "abc123-def456",
         "server_ip": "192.168.1.100",
+        "client_ip": "192.168.1.200",
         "time": 120,
         "parallel": 4
       }

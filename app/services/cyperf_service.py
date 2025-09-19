@@ -28,7 +28,7 @@ class CyperfService:
             )
         return ssh
 
-    def start_server(self, test_id: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    def start_server(self, test_id: str, server_ip: str, params: Dict[str, Any]) -> Dict[str, Any]:
         command = f"nohup sudo cyperf -s"
         if params.get("cps"):
             command += " --cps"
@@ -40,7 +40,7 @@ class CyperfService:
             command += " --csv-stats"
         command += f" {test_id}_server.csv > {test_id}_server.log 2>&1 &"
         print(command)
-        ssh = self._connect_ssh(settings.SERVER_IP)
+        ssh = self._connect_ssh(server_ip)
         ssh.exec_command(command)
         find_cmd = "ps -ef | grep 'cyperf -s' | grep root | awk '{print $2}'"
         _, stdout, _ = ssh.exec_command(find_cmd)
@@ -49,12 +49,13 @@ class CyperfService:
         self.active_tests[test_id] = {
             "server_pid": server_pid,
             "command": command,
-            "server_csv_path": f"{test_id}_server.csv"
+            "server_csv_path": f"{test_id}_server.csv",
+            "server_ip": server_ip
         }
         ssh.close()
         return {"server_pid": server_pid}
 
-    def start_client(self, test_id: str, server_ip: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    def start_client(self, test_id: str, server_ip: str, client_ip: str, params: Dict[str, Any]) -> Dict[str, Any]:
         if test_id not in self.active_tests:
             raise Exception("Server not started for this test_id")
         command = f"nohup sudo cyperf -c {server_ip}"
@@ -79,7 +80,7 @@ class CyperfService:
         if params.get("csv_stats"):
             command += " --csv-stats"
         command += f" {test_id}_client.csv > {test_id}_client.log 2>&1 &"    
-        ssh = self._connect_ssh(settings.CLIENT_IP)
+        ssh = self._connect_ssh(client_ip)
         ssh.exec_command(command)
         find_cmd = "ps -ef | grep 'cyperf -c' | grep root | awk '{print $2}'"
         _, stdout, _ = ssh.exec_command(find_cmd)
@@ -88,6 +89,7 @@ class CyperfService:
         self.active_tests[test_id]["client_pid"] = client_pid
         self.active_tests[test_id]["client_log_path"] = f"{test_id}_client.log"
         self.active_tests[test_id]["client_csv_path"] = f"{test_id}_client.csv"
+        self.active_tests[test_id]["client_ip"] = client_ip
         ssh.close()
         return {"client_pid": client_pid, 
                 "command": command, 
@@ -115,9 +117,12 @@ class CyperfService:
         return output
 
     def read_client_csv_stats(self, test_id: str) -> list:
+        if test_id not in self.active_tests:
+            raise Exception("Test not found")
+        client_ip = self.active_tests[test_id].get("client_ip", settings.CLIENT_IP)
         csv_path = f"{test_id}_client.csv"
         stats = []
-        ssh = self._connect_ssh(settings.CLIENT_IP)
+        ssh = self._connect_ssh(client_ip)
         sftp = ssh.open_sftp()
         with sftp.open(csv_path, 'r') as f:
             reader = csv.DictReader(f)
@@ -128,9 +133,12 @@ class CyperfService:
         return stats
 
     def read_server_csv_stats(self, test_id: str) -> list:
+        if test_id not in self.active_tests:
+            raise Exception("Test not found")
+        server_ip = self.active_tests[test_id].get("server_ip", settings.SERVER_IP)
         csv_path = f"{test_id}_server.csv"
         stats = []
-        ssh = self._connect_ssh(settings.SERVER_IP)
+        ssh = self._connect_ssh(server_ip)
         sftp = ssh.open_sftp()
         with sftp.open(csv_path, 'r') as f:
             reader = csv.DictReader(f)

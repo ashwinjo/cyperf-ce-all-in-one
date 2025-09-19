@@ -12,7 +12,7 @@ cyperf_service = CyperfService()
 async def start_server(request: ServerRequest):
     test_id = str(uuid.uuid4())
     try:
-        result = cyperf_service.start_server(test_id, request.params.dict())
+        result = cyperf_service.start_server(test_id, request.server_ip, request.params.dict())
         return TestResponse(
             test_id=test_id,
             server_pid=result["server_pid"],
@@ -28,6 +28,7 @@ async def start_client(request: ClientRequest):
         result = cyperf_service.start_client(
             request.test_id,
             request.server_ip,
+            request.client_ip,
             request.params.dict()
         )
         return TestResponse(
