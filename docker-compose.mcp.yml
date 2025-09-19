@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # FastAPI service (your existing app)
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    ports:
+      - "8000:8000"
+    environment:
+      - SERVER_IP=${SERVER_IP}
+      - CLIENT_IP=${CLIENT_IP}
+      - SSH_USERNAME=${SSH_USERNAME}
+      - SSH_KEY_PATH=${SSH_KEY_PATH}
+      - SSH_PASSWORD=${SSH_PASSWORD}
+    volumes:
+      - ${SSH_KEY_HOST_PATH}:${SSH_KEY_PATH}:ro
+    command: ["fastapi"]
+    networks:
+      - cyperf-network
+
+  # MCP Server service (stdio)
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    environment:
+      - SERVER_IP=${SERVER_IP}
+      - CLIENT_IP=${CLIENT_IP}
+      - SSH_USERNAME=${SSH_USERNAME}
+      - SSH_KEY_PATH=${SSH_KEY_PATH}
+      - SSH_PASSWORD=${SSH_PASSWORD}
+    volumes:
+      - ${SSH_KEY_HOST_PATH}:${SSH_KEY_PATH}:ro
+    command: ["mcp"]
+    depends_on:
+      - fastapi
+    stdin_open: true
+    tty: true
+    networks:
+      - cyperf-network
+
+  # MCP SSE Server service (HTTP streaming)
+  mcp-sse-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    ports:
+      - "8001:8001"
+    environment:
+      - SERVER_IP=${SERVER_IP}
+      - CLIENT_IP=${CLIENT_IP}
+      - SSH_USERNAME=${SSH_USERNAME}
+      - SSH_KEY_PATH=${SSH_KEY_PATH}
+      - SSH_PASSWORD=${SSH_PASSWORD}
+    volumes:
+      - ${SSH_KEY_HOST_PATH}:${SSH_KEY_PATH}:ro
+    command: ["mcp-sse"]
+    depends_on:
+      - fastapi
+    networks:
+      - cyperf-network
+
+networks:
+  cyperf-network:
+    driver: bridge

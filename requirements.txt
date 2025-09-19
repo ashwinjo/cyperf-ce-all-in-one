@@ -6,3 +6,5 @@ paramiko
 reflex
 pandas
 matplotlib
+mcp
+httpx

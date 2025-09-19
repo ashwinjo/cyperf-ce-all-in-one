@@ -1,0 +1,198 @@
+{
+  "name": "cyperf-ce-controller",
+  "version": "1.0.0",
+  "description": "MCP server for controlling Keysight Cyperf CE Client and Server Tests",
+  "author": "Cyperf CE Controller",
+  "license": "MIT",
+  "tools": [
+    {
+      "name": "start_cyperf_server",
+      "description": "Start a Cyperf CE server with specified parameters",
+      "category": "server",
+      "parameters": {
+        "cps": {
+          "type": "boolean",
+          "description": "Enable connection per second mode",
+          "default": false,
+          "optional": true
+        },
+        "port": {
+          "type": "integer",
+          "description": "Server port",
+          "default": 5202,
+          "optional": true
+        },
+        "length": {
+          "type": "string",
+          "description": "Packet length (e.g., '1k', '64k')",
+          "default": "1k",
+          "optional": true
+        },
+        "csv_stats": {
+          "type": "boolean", 
+          "description": "Enable CSV statistics output",
+          "default": true,
+          "optional": true
+        }
+      }
+    },
+    {
+      "name": "start_cyperf_client",
+      "description": "Start a Cyperf CE client to connect to a running server",
+      "category": "client",
+      "parameters": {
+        "test_id": {
+          "type": "string",
+          "description": "Test ID from the server start operation",
+          "required": true
+        },
+        "server_ip": {
+          "type": "string",
+          "description": "IP address of the Cyperf server",
+          "required": true
+        },
+        "cps": {
+          "type": "string",
+          "description": "Connection per second rate",
+          "optional": true
+        },
+        "port": {
+          "type": "integer",
+          "description": "Server port to connect to",
+          "default": 5202,
+          "optional": true
+        },
+        "length": {
+          "type": "string",
+          "description": "Packet length (e.g., '1k', '64k')",
+          "default": "1k",
+          "optional": true
+        },
+        "time": {
+          "type": "integer",
+          "description": "Test duration in seconds",
+          "default": 60,
+          "optional": true
+        },
+        "csv_stats": {
+          "type": "boolean",
+          "description": "Enable CSV statistics output",
+          "default": true,
+          "optional": true
+        },
+        "bitrate": {
+          "type": "string",
+          "description": "Target bitrate (e.g., '1M', '100M')",
+          "optional": true
+        },
+        "parallel": {
+          "type": "integer",
+          "description": "Number of parallel connections",
+          "default": 1,
+          "optional": true
+        },
+        "reverse": {
+          "type": "boolean",
+          "description": "Enable reverse mode",
+          "default": false,
+          "optional": true
+        },
+        "bidi": {
+          "type": "boolean",
+          "description": "Enable bidirectional mode", 
+          "default": false,
+          "optional": true
+        },
+        "interval": {
+          "type": "integer",
+          "description": "Statistics reporting interval in seconds",
+          "optional": true
+        }
+      }
+    },
+    {
+      "name": "get_server_stats",
+      "description": "Get statistics from a running Cyperf server",
+      "category": "stats",
+      "parameters": {
+        "test_id": {
+          "type": "string",
+          "description": "Test ID of the server",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "get_client_stats",
+      "description": "Get statistics from a running Cyperf client",
+      "category": "stats",
+      "parameters": {
+        "test_id": {
+          "type": "string",
+          "description": "Test ID of the client",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "get_server_stats_image",
+      "description": "Get server statistics as a visual table image",
+      "category": "visualization",
+      "parameters": {
+        "test_id": {
+          "type": "string",
+          "description": "Test ID of the server",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "get_client_stats_image",
+      "description": "Get client statistics as a visual table image",
+      "category": "visualization",
+      "parameters": {
+        "test_id": {
+          "type": "string",
+          "description": "Test ID of the client",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "stop_server",
+      "description": "Stop all running Cyperf servers",
+      "category": "server",
+      "parameters": {}
+    }
+  ],
+  "examples": [
+    {
+      "title": "Basic Server Start",
+      "description": "Start a basic Cyperf server",
+      "tool": "start_cyperf_server",
+      "parameters": {
+        "port": 5202,
+        "csv_stats": true
+      }
+    },
+    {
+      "title": "Client Connection",
+      "description": "Connect a client to the server",
+      "tool": "start_cyperf_client",
+      "parameters": {
+        "test_id": "abc123-def456",
+        "server_ip": "192.168.1.100",
+        "time": 120,
+        "parallel": 4
+      }
+    },
+    {
+      "title": "Get Statistics",
+      "description": "Retrieve server performance statistics",
+      "tool": "get_server_stats",
+      "parameters": {
+        "test_id": "abc123-def456"
+      }
+    }
+  ]
+}

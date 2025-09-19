@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from app.api.models import ServerRequest, ClientRequest, TestResponse
 from app.services.cyperf_service import CyperfService
 import uuid
 from fastapi.responses import StreamingResponse
+from app.api.mcp_helpers import _get_mcp_tools, _handle_mcp_tool_call
 
 router = APIRouter()
 cyperf_service = CyperfService()
@@ -80,5 +81,95 @@ async def get_client_stats_image(test_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# MCP HTTP Endpoint for Streamable HTTP
+@router.post("/mcp", tags=["MCP"])
+async def mcp_endpoint(request: Request):
+    """
+    MCP (Model Context Protocol) HTTP endpoint for streamable HTTP communication
+    """
+    try:
+        body = await request.json()
+        
+        # Handle MCP JSON-RPC requests
+        if "method" in body:
+            method = body["method"]
+            params = body.get("params", {})
+            request_id = body.get("id")
+            
+            if method == "initialize":
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": request_id,
+                    "result": {
+                        "protocolVersion": "2024-11-05",
+                        "capabilities": {
+                            "tools": {}
+                        },
+                        "serverInfo": {
+                            "name": "cyperf-ce-controller",
+                            "version": "1.0.0"
+                        }
+                    }
+                }
+                return response
+                
+            elif method == "tools/list":
+                tools = _get_mcp_tools()
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": request_id,
+                    "result": {
+                        "tools": tools
+                    }
+                }
+                return response
+                
+            elif method == "tools/call":
+                tool_name = params.get("name")
+                arguments = params.get("arguments", {})
+                
+                try:
+                    result = await _handle_mcp_tool_call(tool_name, arguments)
+                    response = {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "result": {
+                            "content": result
+                        }
+                    }
+                    return response
+                    
+                except Exception as e:
+                    response = {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "error": {
+                            "code": -32000,
+                            "message": str(e)
+                        }
+                    }
+                    return response
+            
+            else:
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": request_id,
+                    "error": {
+                        "code": -32601,
+                        "message": f"Method not found: {method}"
+                    }
+                }
+                return response
+                
+    except Exception as e:
+        return {
+            "jsonrpc": "2.0",
+            "id": None,
+            "error": {
+                "code": -32700,
+                "message": f"Parse error: {str(e)}"
+            }
+        }
 
 
