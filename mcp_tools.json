@@ -62,8 +62,9 @@
           "required": true
         },
         "cps": {
-          "type": "string",
-          "description": "Connection per second rate",
+          "type": "boolean",
+          "description": "Enable connection per second mode",
+          "default": false,
           "optional": true
         },
         "port": {

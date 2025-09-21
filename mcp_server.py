@@ -79,8 +79,9 @@ class MCPCyperfServer:
                                 "description": "IP address of the Cyperf server"
                             },
                             "cps": {
-                                "type": "string",
-                                "description": "Connection per second rate"
+                                "type": "boolean",
+                                "description": "Enable connection per second mode",
+                                "default": False
                             },
                             "port": {
                                 "type": "integer",

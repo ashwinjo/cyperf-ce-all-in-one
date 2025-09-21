@@ -37,7 +37,7 @@ def _get_mcp_tools() -> List[Dict[str, Any]]:
                     "test_id": {"type": "string", "description": "Test ID from the server start operation"},
                     "server_ip": {"type": "string", "description": "IP address of the Cyperf server"},
                     "client_ip": {"type": "string", "description": "IP address of the client machine where Cyperf client will run"},
-                    "cps": {"type": "string", "description": "Connection per second rate"},
+                    "cps": {"type": "boolean", "description": "Enable connection per second mode", "default": False},
                     "port": {"type": "integer", "description": "Server port to connect to", "default": 5202},
                     "length": {"type": "string", "description": "Packet length (e.g., '1k', '64k')", "default": "1k"},
                     "time": {"type": "integer", "description": "Test duration in seconds", "default": 60},

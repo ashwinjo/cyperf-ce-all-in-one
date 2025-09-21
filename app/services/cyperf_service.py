@@ -60,7 +60,7 @@ class CyperfService:
             raise Exception("Server not started for this test_id")
         command = f"nohup sudo cyperf -c {server_ip}"
         if params.get("cps"):
-            command += f" --cps {params['cps']}"
+            command += " --cps"
         if params.get("port"):
             command += f" --port {params['port']}"
         if params.get("length"):

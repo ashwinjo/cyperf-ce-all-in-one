@@ -8,7 +8,7 @@ class ServerParams(BaseModel):
     csv_stats: Optional[bool] = True
 
 class ClientParams(BaseModel):
-    cps: Optional[str] = None
+    cps: Optional[bool] = False
     port: Optional[int] = 5202
     length: Optional[str] = "1k"
     time: Optional[int] = 60
