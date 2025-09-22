@@ -54,6 +54,7 @@ services:
       - SSH_USERNAME=${SSH_USERNAME}
       - SSH_KEY_PATH=${SSH_KEY_PATH}
       - SSH_PASSWORD=${SSH_PASSWORD}
+      - FASTAPI_BASE_URL=http://fastapi:8000
     volumes:
       - ${SSH_KEY_HOST_PATH}:${SSH_KEY_PATH}:ro
     command: ["mcp-sse"]

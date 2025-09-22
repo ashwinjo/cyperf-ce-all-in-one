@@ -7,6 +7,7 @@ Provides a streamable HTTP interface for MCP clients using SSE
 import asyncio
 import json
 import logging
+import os
 import sys
 from typing import Any, Dict, List, Optional
 import httpx
@@ -20,7 +21,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Configuration
-FASTAPI_BASE_URL = "http://localhost:8000"
+def get_fastapi_base_url():
+    return os.getenv("FASTAPI_BASE_URL", "http://localhost:8000")
+
+FASTAPI_BASE_URL = get_fastapi_base_url()
 
 class MCPSSEServer:
     def __init__(self):
@@ -321,7 +325,7 @@ class MCPSSEServer:
             """Health check endpoint"""
             try:
                 # Test connection to main FastAPI app
-                response = await self.client.get(f"{FASTAPI_BASE_URL}/docs")
+                response = await self.client.get(f"{get_fastapi_base_url()}/docs")
                 if response.status_code == 200:
                     return {"status": "healthy", "fastapi": "connected"}
                 else:
@@ -493,7 +497,7 @@ class MCPSSEServer:
             }
         }
         
-        response = await self.client.post(f"{FASTAPI_BASE_URL}/api/start_server", json=payload)
+        response = await self.client.post(f"{get_fastapi_base_url()}/api/start_server", json=payload)
         response.raise_for_status()
         result = response.json()
         
@@ -526,7 +530,7 @@ class MCPSSEServer:
             }
         }
         
-        response = await self.client.post(f"{FASTAPI_BASE_URL}/api/start_client", json=payload)
+        response = await self.client.post(f"{get_fastapi_base_url()}/api/start_client", json=payload)
         response.raise_for_status()
         result = response.json()
         
@@ -542,7 +546,7 @@ class MCPSSEServer:
     async def _proxy_get_server_stats(self, arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Proxy server stats to main FastAPI app"""
         test_id = arguments["test_id"]
-        response = await self.client.get(f"{FASTAPI_BASE_URL}/api/server/stats/{test_id}")
+        response = await self.client.get(f"{get_fastapi_base_url()}/api/server/stats/{test_id}")
         response.raise_for_status()
         stats = response.json()
         
@@ -554,7 +558,7 @@ class MCPSSEServer:
     async def _proxy_get_client_stats(self, arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Proxy client stats to main FastAPI app"""
         test_id = arguments["test_id"]
-        response = await self.client.get(f"{FASTAPI_BASE_URL}/api/client/stats/{test_id}")
+        response = await self.client.get(f"{get_fastapi_base_url()}/api/client/stats/{test_id}")
         response.raise_for_status()
         stats = response.json()
         
@@ -568,12 +572,12 @@ class MCPSSEServer:
         import base64
         
         test_id = arguments["test_id"]
-        response = await self.client.get(f"{FASTAPI_BASE_URL}/api/server/stats_image/{test_id}")
+        response = await self.client.get(f"{get_fastapi_base_url()}/api/server/stats_image/{test_id}")
         response.raise_for_status()
         
         image_data = response.content
         image_b64 = base64.b64encode(image_data).decode('utf-8')
-        
+
         return [{
             "type": "image",
             "data": image_b64,
@@ -585,7 +589,7 @@ class MCPSSEServer:
         import base64
         
         test_id = arguments["test_id"]
-        response = await self.client.get(f"{FASTAPI_BASE_URL}/api/client/stats_image/{test_id}")
+        response = await self.client.get(f"{get_fastapi_base_url()}/api/client/stats_image/{test_id}")
         response.raise_for_status()
         
         image_data = response.content
@@ -600,21 +604,21 @@ class MCPSSEServer:
     async def _proxy_get_server_logs(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Proxy get server logs to FastAPI"""
         test_id = arguments["test_id"]
-        response = await self.client.get(f"{FASTAPI_BASE_URL}/api/server/logs/{test_id}")
+        response = await self.client.get(f"{get_fastapi_base_url()}/api/server/logs/{test_id}")
         response.raise_for_status()
         return response.json()
 
     async def _proxy_get_client_logs(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Proxy get client logs to FastAPI"""
         test_id = arguments["test_id"]
-        response = await self.client.get(f"{FASTAPI_BASE_URL}/api/client/logs/{test_id}")
+        response = await self.client.get(f"{get_fastapi_base_url()}/api/client/logs/{test_id}")
         response.raise_for_status()
         return response.json()
 
     async def _proxy_stop_server(self, arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Proxy server stop to main FastAPI app"""
         server_ip = arguments["server_ip"]
-        response = await self.client.delete(f"{FASTAPI_BASE_URL}/api/server/cleanup", json={"server_ip": server_ip})
+        response = await self.client.delete(f"{get_fastapi_base_url()}/api/server/cleanup", json={"server_ip": server_ip})
         response.raise_for_status()
         result = response.json()
         
@@ -626,7 +630,7 @@ class MCPSSEServer:
     def run(self, host: str = "0.0.0.0", port: int = 8001):
         """Run the MCP SSE server"""
         logger.info(f"Starting MCP SSE Server on {host}:{port}")
-        logger.info(f"Proxying to FastAPI app at {FASTAPI_BASE_URL}")
+        logger.info(f"Proxying to FastAPI app at {os.getenv('FASTAPI_BASE_URL', 'http://localhost:8000')}")
         uvicorn.run(self.app, host=host, port=port, log_level="info")
 
 def main():
