@@ -30,6 +30,9 @@ class ClientRequest(BaseModel):
     client_ip: str
     params: ClientParams
 
+class StopServerRequest(BaseModel):
+    server_ip: str
+
 class TestResponse(BaseModel):
     test_id: str
     status: str

@@ -915,7 +915,7 @@ fi
 # Wait for test to complete
 sleep 20
 
-# Test cleanup
+# Stop server and cleanup
 echo "7️⃣ Testing stop_server..."
 RESPONSE=$(curl -s -X POST $MCP_ENDPOINT \
   -H "Content-Type: application/json" \

@@ -12,7 +12,7 @@ import sys
 from typing import Any, Dict, List, Optional
 import httpx
 from fastapi import FastAPI, Request, Response
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
@@ -228,14 +228,19 @@ class MCPHTTPServer:
                     request_id = body.get("id")
                     
                     if method == "initialize":
+                        logger.info(f"Processing initialize request with ID: {request_id}")
                         response = {
                             "jsonrpc": "2.0",
                             "id": request_id,
                             "result": {
                                 "protocolVersion": "2024-11-05",
                                 "capabilities": {
-                                    "tools": {},
-                                    "logging": {}
+                                    "tools": {
+                                        "listChanged": False
+                                    },
+                                    "logging": {},
+                                    "resources": {},
+                                    "prompts": {}
                                 },
                                 "serverInfo": {
                                     "name": "cyperf-ce-controller",
@@ -243,7 +248,13 @@ class MCPHTTPServer:
                                 }
                             }
                         }
-                        return response
+                        logger.info(f"Returning initialize response: {response}")
+                        return JSONResponse(content=response, headers={"Content-Type": "application/json"})
+                        
+                    elif method == "notifications/initialized":
+                        logger.info("Processing notifications/initialized")
+                        # Client has finished initializing - return empty success response
+                        return JSONResponse(content={}, headers={"Content-Type": "application/json"})
                         
                     elif method == "tools/list":
                         tools = await self._get_mcp_tools()
@@ -254,7 +265,7 @@ class MCPHTTPServer:
                                 "tools": tools
                             }
                         }
-                        return response
+                        return JSONResponse(content=response, headers={"Content-Type": "application/json"})
                         
                     elif method == "tools/call":
                         tool_name = params.get("name")
@@ -430,11 +441,11 @@ class MCPHTTPServer:
             },
             {
                 "name": "stop_server",
-                "description": "Stop all running Cyperf servers on a specific machine",
+                "description": "Stop and cleanup all running Cyperf server processes on a specific machine",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "server_ip": {"type": "string", "description": "IP address of the server machine where Cyperf servers should be stopped"}
+                        "server_ip": {"type": "string", "description": "IP address of the server machine where Cyperf servers should be stopped and cleaned up"}
                     },
                     "required": ["server_ip"]
                 }
@@ -607,13 +618,13 @@ class MCPHTTPServer:
     async def _proxy_stop_server(self, arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Proxy server stop to main FastAPI app"""
         server_ip = arguments["server_ip"]
-        response = await self.client.delete(f"{get_fastapi_base_url()}/api/server/cleanup", json={"server_ip": server_ip})
+        response = await self.client.post(f"{get_fastapi_base_url()}/api/stop_server", json={"server_ip": server_ip})
         response.raise_for_status()
         result = response.json()
         
         return [{
             "type": "text",
-            "text": f"Server cleanup completed on {server_ip}: {json.dumps(result, indent=2)}"
+            "text": f"Server stop and cleanup completed on {server_ip}: {json.dumps(result, indent=2)}"
         }]
 
     def run(self, host: str = "0.0.0.0", port: int = 8001):

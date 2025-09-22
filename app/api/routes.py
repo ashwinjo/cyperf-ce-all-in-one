@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request
-from app.api.models import ServerRequest, ClientRequest, TestResponse
+from app.api.models import ServerRequest, ClientRequest, TestResponse, StopServerRequest
 from app.services.cyperf_service import CyperfService
 import uuid
 from fastapi.responses import StreamingResponse
@@ -56,12 +56,19 @@ async def get_client_stats(test_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@router.delete("/server/cleanup", tags=["Cyperf CE Server"])
-async def stop_server(request: Request):
+@router.post("/stop_server", tags=["Cyperf CE Server"])
+async def stop_server(request: StopServerRequest):
+    """
+    Stop and cleanup all Cyperf server processes on the specified server IP
+    
+    Args:
+        request: StopServerRequest containing server_ip
+        
+    Returns:
+        Dictionary with cleanup results and server_ip
+    """
     try:
-        body = await request.json()
-        server_ip = body["server_ip"]
-        result = cyperf_service.stop_server(server_ip)
+        result = cyperf_service.stop_server(request.server_ip)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

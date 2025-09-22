@@ -325,13 +325,13 @@ curl -X 'GET' \
 
 ---
 
-## 6. Cleanup Server
+## 6. Stop Server
 
-Stops all Cyperf server processes on the specified server machine.
+Stops and cleans up all Cyperf server processes on the specified server machine.
 
 ### Endpoint
 ```
-DELETE /api/server/cleanup
+POST /api/stop_server
 ```
 
 ### Request Body
@@ -351,8 +351,8 @@ DELETE /api/server/cleanup
 
 ### Sample cURL Command
 ```bash
-curl -X 'DELETE' \
-  'http://localhost:8000/api/server/cleanup' \
+curl -X 'POST' \
+  'http://localhost:8000/api/stop_server' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -436,8 +436,8 @@ curl -X 'GET' \
 ### Step 5: Cleanup
 ```bash
 # Stop server processes
-curl -X 'DELETE' \
-  'http://localhost:8000/api/server/cleanup' \
+curl -X 'POST' \
+  'http://localhost:8000/api/stop_server' \
   -H 'Content-Type: application/json' \
   -d '{
     "server_ip": "192.168.1.100"
@@ -517,6 +517,6 @@ These provide an interactive interface to test all endpoints directly from your 
 
 4. **Log Files**: Log endpoints provide access to execution logs for debugging. Logs contain command output, errors, and process information.
 
-5. **Process Management**: The cleanup endpoint stops all Cyperf processes on the specified server machine.
+5. **Process Management**: The stop server endpoint stops and cleans up all Cyperf processes on the specified server machine.
 
 6. **Concurrent Tests**: You can run multiple tests simultaneously by using different server machines or different ports.

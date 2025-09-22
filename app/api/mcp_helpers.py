@@ -120,11 +120,11 @@ def _get_mcp_tools() -> List[Dict[str, Any]]:
         },
         {
             "name": "stop_server",
-            "description": "Stop all running Cyperf servers on a specific machine",
+            "description": "Stop and cleanup all running Cyperf server processes on a specific machine",
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "server_ip": {"type": "string", "description": "IP address of the server machine where Cyperf servers should be stopped"}
+                    "server_ip": {"type": "string", "description": "IP address of the server machine where Cyperf servers should be stopped and cleaned up"}
                 },
                 "required": ["server_ip"]
             }
