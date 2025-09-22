@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-MCP SSE (Server-Sent Events) Server for Cyperf CE Controller
-Provides a streamable HTTP interface for MCP clients using SSE
+MCP HTTP Server for Cyperf CE Controller
+Provides a streamable HTTP interface for MCP clients
 """
 
 import asyncio
@@ -26,11 +26,11 @@ def get_fastapi_base_url():
 
 FASTAPI_BASE_URL = get_fastapi_base_url()
 
-class MCPSSEServer:
+class MCPHTTPServer:
     def __init__(self):
         self.app = FastAPI(
-            title="MCP SSE Server for Cyperf CE Controller",
-            description="Server-Sent Events based MCP server for Cyperf operations",
+            title="MCP HTTP Server for Cyperf CE Controller",
+            description="Streamable HTTP based MCP server for Cyperf operations",
             version="1.0.0"
         )
         self.client = httpx.AsyncClient(timeout=30.0)
@@ -48,18 +48,18 @@ class MCPSSEServer:
         )
 
     def _setup_routes(self):
-        """Setup MCP SSE routes"""
+        """Setup MCP HTTP routes"""
         
         @self.app.get("/")
         async def root():
             return {
-                "name": "MCP SSE Server for Cyperf CE Controller",
+                "name": "MCP HTTP Server for Cyperf CE Controller",
                 "version": "1.0.0",
                 "protocol": "mcp",
-                "transport": "sse",
+                "transport": "http",
                 "endpoints": {
-                    "sse_get": "/sse (GET) - Browser-friendly SSE test",
-                    "sse_post": "/sse (POST) - MCP JSON-RPC over SSE",
+                    "mcp": "/mcp (POST) - MCP JSON-RPC streamable HTTP",
+                    "mcp_test": "/mcp (GET) - Browser-friendly test",
                     "health": "/health - Health check",
                     "test": "/test - HTML test page"
                 }
@@ -101,17 +101,16 @@ class MCPSSEServer:
             </head>
             <body>
                 <div class="container">
-                    <h1>MCP SSE Server Test</h1>
-                    <p>Test the Server-Sent Events connection to your MCP server.</p>
+                    <h1>MCP HTTP Server Test</h1>
+                    <p>Test the HTTP connection to your MCP server.</p>
                     
                     <div id="status" class="status disconnected">Disconnected</div>
                     
-                    <button onclick="connect()">Connect SSE</button>
-                    <button onclick="disconnect()">Disconnect</button>
+                    <button onclick="testMCP()">Test MCP</button>
                     <button onclick="clearLog()">Clear Log</button>
                     
-                    <h3>Event Log:</h3>
-                    <div id="log" class="log">Click "Connect SSE" to start receiving events...</div>
+                    <h3>Response Log:</h3>
+                    <div id="log" class="log">Click "Test MCP" to test the server...</div>
                 </div>
 
                 <script>
@@ -121,10 +120,10 @@ class MCPSSEServer:
 
                     function updateStatus(connected) {
                         if (connected) {
-                            status.textContent = 'Connected to SSE stream';
+                            status.textContent = 'MCP Server Online';
                             status.className = 'status connected';
                         } else {
-                            status.textContent = 'Disconnected';
+                            status.textContent = 'MCP Server Offline';
                             status.className = 'status disconnected';
                         }
                     }
@@ -135,41 +134,38 @@ class MCPSSEServer:
                         log.scrollTop = log.scrollHeight;
                     }
 
-                    function connect() {
-                        if (eventSource) {
-                            eventSource.close();
-                        }
-
-                        addToLog('Connecting to SSE endpoint...');
-                        eventSource = new EventSource('/sse');
-
-                        eventSource.onopen = function(event) {
+                    async function testMCP() {
+                        addToLog('Testing MCP HTTP endpoint...');
+                        
+                        try {
+                            // Test GET endpoint
+                            addToLog('📨 Testing GET /mcp...');
+                            const getResponse = await fetch('/mcp');
+                            const getData = await getResponse.json();
+                            addToLog(`✅ GET Response: ${JSON.stringify(getData, null, 2)}`);
                             updateStatus(true);
-                            addToLog('SSE connection opened');
-                        };
-
-                        eventSource.onmessage = function(event) {
-                            addToLog('Data: ' + event.data);
-                        };
-
-                        eventSource.onerror = function(event) {
-                            addToLog('SSE error occurred');
+                            
+                            // Test tools/list
+                            addToLog('📨 Testing tools/list...');
+                            const listResponse = await fetch('/mcp', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    jsonrpc: '2.0',
+                                    id: 1,
+                                    method: 'tools/list',
+                                    params: {}
+                                })
+                            });
+                            const listData = await listResponse.json();
+                            addToLog(`✅ tools/list Response: ${JSON.stringify(listData, null, 2)}`);
+                            
+                        } catch (error) {
+                            addToLog(`❌ Error: ${error.message}`);
                             updateStatus(false);
-                        };
-
-                        eventSource.addEventListener('close', function(event) {
-                            addToLog('Server closed the connection');
-                            disconnect();
-                        });
-                    }
-
-                    function disconnect() {
-                        if (eventSource) {
-                            eventSource.close();
-                            eventSource = null;
                         }
-                        updateStatus(false);
-                        addToLog('Disconnected from SSE');
                     }
 
                     function clearLog() {
@@ -182,9 +178,9 @@ class MCPSSEServer:
             from fastapi.responses import HTMLResponse
             return HTMLResponse(content=html_content)
 
-        @self.app.options("/sse")
-        async def mcp_sse_options():
-            """Handle CORS preflight requests for SSE endpoint"""
+        @self.app.options("/mcp")
+        async def mcp_options():
+            """Handle CORS preflight requests for MCP endpoint"""
             return Response(
                 headers={
                     "Access-Control-Allow-Origin": "*",
@@ -194,41 +190,32 @@ class MCPSSEServer:
                 }
             )
 
-        @self.app.get("/sse")
-        async def mcp_sse_get_endpoint(request: Request):
+        @self.app.get("/mcp")
+        async def mcp_get_endpoint(request: Request):
             """
-            MCP SSE GET endpoint for browser connections
-            Returns a simple SSE stream for testing
+            MCP GET endpoint for browser connections
+            Returns available tools and server info for testing
             """
-            async def event_stream():
-                yield f"data: {json.dumps({'message': 'MCP SSE Server Ready', 'server': 'cyperf-ce-controller-sse', 'version': '1.0.0'})}\n\n"
-                
-                # Send available tools
-                tools = await self._get_mcp_tools()
-                yield f"data: {json.dumps({'available_tools': [tool['name'] for tool in tools]})}\n\n"
-                
-                # Keep connection alive with periodic pings
-                import asyncio
-                for i in range(10):  # Send 10 pings then close
-                    await asyncio.sleep(2)
-                    yield f"data: {json.dumps({'ping': i + 1, 'timestamp': str(__import__('datetime').datetime.now())})}\n\n"
-                
-                yield "event: close\ndata: {}\n\n"
-
-            return StreamingResponse(
-                event_stream(),
-                media_type="text/event-stream",
-                headers={
-                    "Cache-Control": "no-cache",
-                    "Connection": "keep-alive"
+            tools = await self._get_mcp_tools()
+            return {
+                "message": "MCP HTTP Server Ready",
+                "server": "cyperf-ce-controller",
+                "version": "1.0.0",
+                "protocol": "mcp",
+                "transport": "http",
+                "available_tools": [tool['name'] for tool in tools],
+                "endpoints": {
+                    "mcp_post": "/mcp (POST) - MCP JSON-RPC requests",
+                    "mcp_get": "/mcp (GET) - This endpoint",
+                    "health": "/health - Health check"
                 }
-            )
+            }
 
-        @self.app.post("/sse")
-        async def mcp_sse_endpoint(request: Request):
+        @self.app.post("/mcp")
+        async def mcp_endpoint(request: Request):
             """
-            MCP Server-Sent Events endpoint - Handle regular HTTP requests for now
-            The mcp-remote client seems to have issues with our SSE implementation
+            MCP HTTP endpoint - Handle MCP JSON-RPC requests over HTTP
+            Supports streamable HTTP for real-time communication
             """
             try:
                 body = await request.json()
@@ -251,7 +238,7 @@ class MCPSSEServer:
                                     "logging": {}
                                 },
                                 "serverInfo": {
-                                    "name": "cyperf-ce-controller-sse",
+                                    "name": "cyperf-ce-controller",
                                     "version": "1.0.0"
                                 }
                             }
@@ -651,7 +638,7 @@ def main():
     FASTAPI_BASE_URL = args.fastapi_url
     
     # Create and run server
-    server = MCPSSEServer()
+    server = MCPHTTPServer()
     server.run(host=args.host, port=args.port)
 
 if __name__ == "__main__":

@@ -41,7 +41,7 @@ services:
     networks:
       - cyperf-network
 
-  # MCP SSE Server service (HTTP streaming)
+  # MCP HTTP Server service (Streamable HTTP)
   mcp-sse-server:
     build:
       context: .
