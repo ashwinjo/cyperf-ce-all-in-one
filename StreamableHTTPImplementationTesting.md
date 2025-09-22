@@ -1,11 +1,11 @@
-# Cyperf CE Controller - SSE Implementation Testing Guide
+# Cyperf CE Controller - Streamable HTTP Implementation Testing Guide
 
 ## Overview
-This guide provides complete instructions for users to set up and test the Cyperf CE Controller with Server-Sent Events (SSE) support. The SSE endpoint acts as a proxy to the main FastAPI application, allowing MCP clients to interact with your Cyperf infrastructure.
+This guide provides complete instructions for users to set up and test the Cyperf CE Controller with Streamable HTTP support. The MCP HTTP endpoint acts as a proxy to the main FastAPI application, allowing MCP clients to interact with your Cyperf infrastructure using standard HTTP POST requests with JSON-RPC 2.0 protocol.
 
 ## Architecture
 ```
-MCP Client → SSE Endpoint (Port 8001) → FastAPI App (Port 8000) → SSH → Remote Cyperf Servers
+MCP Client → MCP HTTP Endpoint (Port 8001) → FastAPI App (Port 8000) → SSH → Remote Cyperf Servers
 ```
 
 ## Prerequisites
@@ -58,7 +58,7 @@ docker-compose -f docker-compose.mcp.yml up -d
 
 This command starts:
 - **FastAPI service** on `localhost:8000` (main application with your SSH credentials)
-- **SSE service** on `localhost:8001` (proxy endpoint for MCP clients)
+- **MCP HTTP service** on `localhost:8001` (proxy endpoint for MCP clients using Streamable HTTP)
 
 ### Step 4: Verify Services Are Running
 ```bash
@@ -78,21 +78,23 @@ curl http://localhost:8000/docs
 # Should return FastAPI documentation page
 ```
 
-#### Test SSE Endpoint Info
+#### Test MCP HTTP Endpoint Info
 ```bash
-curl http://localhost:8001/
-# Should return SSE server information and available endpoints
+curl http://localhost:8001/mcp
+# Should return MCP HTTP server information and available endpoints
 ```
 
-#### Test SSE Stream
+#### Test MCP HTTP Protocol
 ```bash
-curl http://localhost:8001/sse
-# Should return streaming data with server info and available tools
+curl -X POST http://localhost:8001/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test-client","version":"1.0.0"}}}'
+# Should return MCP initialize response with server capabilities
 ```
 
 #### Test Browser Interface
 Open your browser and visit: `http://localhost:8001/test`
-This provides a web interface to test SSE connections interactively.
+This provides a web interface to test MCP HTTP connections interactively.
 
 ## MCP Client Configuration
 
@@ -103,20 +105,28 @@ Add the following to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "cyperf-ce-controller": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-everything"],
-      "env": {
-        "MCP_SERVER_URL": "http://localhost:8001/sse"
-      }
+      "command": "/opt/homebrew/opt/node@22/bin/npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "http://localhost:8001/mcp",
+        "--allow-http"
+      ]
     }
   }
 }
 ```
 
-### For Other MCP Clients
+### For Other MCP Clients (Goose, etc.)
 Configure your MCP client to connect to:
 ```
-http://localhost:8001/sse
+http://localhost:8001/mcp
+```
+
+### Using mcp-remote Bridge
+Most MCP clients expect stdio transport, so use the `mcp-remote` bridge:
+```bash
+npx -y mcp-remote http://localhost:8001/mcp --allow-http
 ```
 
 ## Available Tools via MCP
@@ -129,7 +139,9 @@ Once connected, your MCP client will have access to these tools:
 4. **get_client_stats** - Get client statistics
 5. **get_server_stats_image** - Get server stats as visual image
 6. **get_client_stats_image** - Get client stats as visual image
-7. **stop_server** - Stop all running servers
+7. **get_server_logs** - Get server log files for debugging
+8. **get_client_logs** - Get client log files for debugging
+9. **stop_server** - Stop and cleanup all running servers
 
 ## Testing the Complete Workflow
 
@@ -142,6 +154,7 @@ Once connected, your MCP client will have access to these tools:
   "params": {
     "name": "start_cyperf_server",
     "arguments": {
+      "server_ip": "100.25.44.178",
       "cps": false,
       "port": 5202,
       "length": "1k",
@@ -162,8 +175,10 @@ Once connected, your MCP client will have access to these tools:
     "arguments": {
       "test_id": "your-test-id-from-server-start",
       "server_ip": "100.25.44.178",
-      "cps": "100",
-      "time": 60
+      "client_ip": "34.218.246.113",
+      "cps": false,
+      "time": 60,
+      "csv_stats": true
     }
   }
 }
@@ -238,7 +253,7 @@ docker-compose -f docker-compose.mcp.yml logs -f mcp-sse-server
 # Access FastAPI container
 docker-compose -f docker-compose.mcp.yml exec fastapi /bin/bash
 
-# Access SSE container
+# Access MCP HTTP container
 docker-compose -f docker-compose.mcp.yml exec mcp-sse-server /bin/bash
 ```
 
@@ -264,16 +279,17 @@ docker-compose -f docker-compose.mcp.yml up -d
 ## Security Considerations
 
 1. **SSH Keys**: Ensure SSH key files have proper permissions (600)
-2. **Network Access**: The SSE endpoint is exposed on all interfaces (0.0.0.0)
+2. **Network Access**: The MCP HTTP endpoint is exposed on all interfaces (0.0.0.0)
 3. **Environment Variables**: Keep sensitive data in .env file, not in version control
 4. **Container Security**: Services run with default Docker security settings
 
 ## Performance Notes
 
-- **SSE Connection**: Maintains persistent connections for real-time communication
+- **HTTP POST Requests**: Uses standard HTTP POST requests with JSON-RPC 2.0 protocol
 - **Resource Usage**: Each service runs in its own container with isolated resources
 - **Network Latency**: Proxy adds minimal overhead between MCP client and FastAPI
 - **SSH Connections**: New SSH connection per operation (consider connection pooling for high-frequency usage)
+- **Protocol Compatibility**: Works with both direct HTTP clients and MCP clients via mcp-remote bridge
 
 ## Support
 
@@ -286,11 +302,12 @@ For issues or questions:
 ## What's Next
 
 After successful setup, you can:
-- Use the MCP tools through your preferred MCP client
+- Use the MCP tools through your preferred MCP client (Goose, Claude Desktop, etc.)
 - Monitor operations through the web interface at `http://localhost:8001/test`
 - Access detailed API documentation at `http://localhost:8000/docs`
+- Connect directly via HTTP POST requests to `http://localhost:8001/mcp`
 - Extend functionality by modifying the source code and rebuilding containers
 
 ---
 
-**Note**: This SSE implementation provides a bridge between MCP clients and your existing FastAPI Cyperf controller, enabling seamless integration with AI assistants and other MCP-compatible tools.
+**Note**: This Streamable HTTP implementation provides a bridge between MCP clients and your existing FastAPI Cyperf controller, enabling seamless integration with AI assistants and other MCP-compatible tools using standard HTTP POST requests with JSON-RPC 2.0 protocol.
