@@ -170,6 +170,52 @@
       }
     },
     {
+      "name": "get_server_logs",
+      "description": "Get server log file contents for debugging",
+      "category": "debugging",
+      "parameters": {
+        "test_id": {
+          "type": "string",
+          "description": "Test ID of the server",
+          "required": true
+        }
+      },
+      "examples": [
+        {
+          "description": "Get server logs for debugging",
+          "call": {
+            "name": "get_server_logs",
+            "arguments": {
+              "test_id": "a933502b-f30d-4d13-8486-ab5e380d9a4e"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "get_client_logs",
+      "description": "Get client log file contents for debugging",
+      "category": "debugging",
+      "parameters": {
+        "test_id": {
+          "type": "string",
+          "description": "Test ID of the client",
+          "required": true
+        }
+      },
+      "examples": [
+        {
+          "description": "Get client logs for debugging",
+          "call": {
+            "name": "get_client_logs",
+            "arguments": {
+              "test_id": "a933502b-f30d-4d13-8486-ab5e380d9a4e"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "stop_server",
       "description": "Stop all running Cyperf servers on a specific machine",
       "category": "server",

@@ -164,6 +164,26 @@ All MCP tool schemas now include IP address parameters:
 }
 
 {
+  "name": "get_server_logs",
+  "inputSchema": {
+    "properties": {
+      "test_id": {"type": "string", "description": "Test ID of the server"}
+    },
+    "required": ["test_id"]
+  }
+}
+
+{
+  "name": "get_client_logs",
+  "inputSchema": {
+    "properties": {
+      "test_id": {"type": "string", "description": "Test ID of the client"}
+    },
+    "required": ["test_id"]
+  }
+}
+
+{
   "name": "stop_server",
   "inputSchema": {
     "properties": {
@@ -333,6 +353,70 @@ curl -X DELETE "http://localhost:8000/api/server/cleanup"
       "test_id": "550e8400-e29b-41d4-a716-446655440000",
       "server_ip": "192.168.1.100"
     }
+  }
+}
+```
+
+### 4. Get Server Logs via MCP
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "method": "tools/call",
+  "params": {
+    "name": "get_server_logs",
+    "arguments": {
+      "test_id": "a933502b-f30d-4d13-8486-ab5e380d9a4e"
+    }
+  }
+}
+```
+
+#### Response:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Server Logs for Test ID: a933502b-f30d-4d13-8486-ab5e380d9a4e\n\nCyperf server started on 192.168.1.100:5202\nListening for connections...\nConnection established from 192.168.1.101\nTransferring data...\nTest completed successfully\n"
+      }
+    ]
+  }
+}
+```
+
+### 5. Get Client Logs via MCP
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "method": "tools/call",
+  "params": {
+    "name": "get_client_logs",
+    "arguments": {
+      "test_id": "a933502b-f30d-4d13-8486-ab5e380d9a4e"
+    }
+  }
+}
+```
+
+#### Response:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Client Logs for Test ID: a933502b-f30d-4d13-8486-ab5e380d9a4e\n\nConnecting to server 192.168.1.100:5202\nConnection established\nStarting data transfer\nTransfer rate: 95.2 Mbps\nTest completed in 60 seconds\n"
+      }
+    ]
   }
 }
 ```

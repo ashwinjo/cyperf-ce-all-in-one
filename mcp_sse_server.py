@@ -415,6 +415,28 @@ class MCPSSEServer:
                 }
             },
             {
+                "name": "get_server_logs",
+                "description": "Get server log file contents for debugging",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "test_id": {"type": "string", "description": "Test ID of the server"}
+                    },
+                    "required": ["test_id"]
+                }
+            },
+            {
+                "name": "get_client_logs",
+                "description": "Get client log file contents for debugging",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "test_id": {"type": "string", "description": "Test ID of the client"}
+                    },
+                    "required": ["test_id"]
+                }
+            },
+            {
                 "name": "stop_server",
                 "description": "Stop all running Cyperf servers on a specific machine",
                 "inputSchema": {
@@ -442,6 +464,18 @@ class MCPSSEServer:
             return await self._proxy_get_server_stats_image(arguments)
         elif tool_name == "get_client_stats_image":
             return await self._proxy_get_client_stats_image(arguments)
+        elif tool_name == "get_server_logs":
+            result = await self._proxy_get_server_logs(arguments)
+            return [{
+                "type": "text", 
+                "text": f"Server Logs for Test ID: {arguments['test_id']}\n\n{result['content']}"
+            }]
+        elif tool_name == "get_client_logs":
+            result = await self._proxy_get_client_logs(arguments)
+            return [{
+                "type": "text", 
+                "text": f"Client Logs for Test ID: {arguments['test_id']}\n\n{result['content']}"
+            }]
         elif tool_name == "stop_server":
             return await self._proxy_stop_server(arguments)
         else:
@@ -562,6 +596,20 @@ class MCPSSEServer:
             "data": image_b64,
             "mimeType": "image/png"
         }]
+
+    async def _proxy_get_server_logs(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Proxy get server logs to FastAPI"""
+        test_id = arguments["test_id"]
+        response = await self.client.get(f"{FASTAPI_BASE_URL}/api/server/logs/{test_id}")
+        response.raise_for_status()
+        return response.json()
+
+    async def _proxy_get_client_logs(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Proxy get client logs to FastAPI"""
+        test_id = arguments["test_id"]
+        response = await self.client.get(f"{FASTAPI_BASE_URL}/api/client/logs/{test_id}")
+        response.raise_for_status()
+        return response.json()
 
     async def _proxy_stop_server(self, arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Proxy server stop to main FastAPI app"""

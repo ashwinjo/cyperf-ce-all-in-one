@@ -185,9 +185,37 @@ class MCPCyperfServer:
                         },
                         "required": ["test_id"]
                     }
-                ),
-                Tool(
-                    name="stop_server",
+                    ),
+                    Tool(
+                        name="get_server_logs",
+                        description="Get server log file contents for debugging",
+                        inputSchema={
+                            "type": "object",
+                            "properties": {
+                                "test_id": {
+                                    "type": "string",
+                                    "description": "Test ID of the server"
+                                }
+                            },
+                            "required": ["test_id"]
+                        }
+                    ),
+                    Tool(
+                        name="get_client_logs",
+                        description="Get client log file contents for debugging",
+                        inputSchema={
+                            "type": "object",
+                            "properties": {
+                                "test_id": {
+                                    "type": "string",
+                                    "description": "Test ID of the client"
+                                }
+                            },
+                            "required": ["test_id"]
+                        }
+                    ),
+                    Tool(
+                        name="stop_server",
                     description="Stop all running Cyperf servers",
                     inputSchema={
                         "type": "object",
@@ -211,6 +239,10 @@ class MCPCyperfServer:
                     return await self._get_server_stats_image(arguments)
                 elif name == "get_client_stats_image":
                     return await self._get_client_stats_image(arguments)
+                elif name == "get_server_logs":
+                    return await self._get_server_logs(arguments)
+                elif name == "get_client_logs":
+                    return await self._get_client_logs(arguments)
                 elif name == "stop_server":
                     return await self._stop_server(arguments)
                 else:
@@ -318,6 +350,30 @@ class MCPCyperfServer:
             type="image", 
             data=image_data,
             mimeType="image/png"
+        )]
+
+    async def _get_server_logs(self, arguments: Dict[str, Any]) -> List[TextContent]:
+        """Get server logs"""
+        test_id = arguments["test_id"]
+        response = await self.client.get(f"{FASTAPI_BASE_URL}/api/server/logs/{test_id}")
+        response.raise_for_status()
+        result = response.json()
+        
+        return [TextContent(
+            type="text",
+            text=f"Server Logs for Test ID: {test_id}\n\n{result['content']}"
+        )]
+
+    async def _get_client_logs(self, arguments: Dict[str, Any]) -> List[TextContent]:
+        """Get client logs"""
+        test_id = arguments["test_id"]
+        response = await self.client.get(f"{FASTAPI_BASE_URL}/api/client/logs/{test_id}")
+        response.raise_for_status()
+        result = response.json()
+        
+        return [TextContent(
+            type="text",
+            text=f"Client Logs for Test ID: {test_id}\n\n{result['content']}"
         )]
 
     async def _stop_server(self, arguments: Dict[str, Any]) -> List[TextContent]:

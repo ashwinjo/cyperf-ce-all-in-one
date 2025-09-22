@@ -96,6 +96,28 @@ def _get_mcp_tools() -> List[Dict[str, Any]]:
             }
         },
         {
+            "name": "get_server_logs",
+            "description": "Get server log file contents for debugging",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "test_id": {"type": "string", "description": "Test ID of the server"}
+                },
+                "required": ["test_id"]
+            }
+        },
+        {
+            "name": "get_client_logs",
+            "description": "Get client log file contents for debugging",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "test_id": {"type": "string", "description": "Test ID of the client"}
+                },
+                "required": ["test_id"]
+            }
+        },
+        {
             "name": "stop_server",
             "description": "Stop all running Cyperf servers on a specific machine",
             "inputSchema": {
@@ -124,6 +146,10 @@ async def _handle_mcp_tool_call(tool_name: str, arguments: Dict[str, Any]) -> Li
         return await _mcp_get_server_stats_image(arguments)
     elif tool_name == "get_client_stats_image":
         return await _mcp_get_client_stats_image(arguments)
+    elif tool_name == "get_server_logs":
+        return await _mcp_get_server_logs(arguments)
+    elif tool_name == "get_client_logs":
+        return await _mcp_get_client_logs(arguments)
     elif tool_name == "stop_server":
         return await _mcp_stop_server(arguments)
     else:
@@ -248,6 +274,28 @@ async def _mcp_get_client_stats_image(arguments: Dict[str, Any]) -> List[Dict[st
         "type": "image",
         "data": image_b64,
         "mimeType": "image/png"
+    }]
+
+
+async def _mcp_get_server_logs(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Get server logs via MCP"""
+    test_id = arguments["test_id"]
+    logs = cyperf_service.read_server_logs(test_id)
+    
+    return [{
+        "type": "text",
+        "text": f"Server Logs for Test ID: {test_id}\n\n{logs}"
+    }]
+
+
+async def _mcp_get_client_logs(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Get client logs via MCP"""
+    test_id = arguments["test_id"]
+    logs = cyperf_service.read_client_logs(test_id)
+    
+    return [{
+        "type": "text",
+        "text": f"Client Logs for Test ID: {test_id}\n\n{logs}"
     }]
 
 
