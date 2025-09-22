@@ -63,8 +63,13 @@
         },
         "cps": {
           "type": "boolean",
-          "description": "Enable connection per second mode",
+          "description": "Enable connection per second mode. Mutually exclusive with bitrate",
           "default": false,
+          "optional": true
+        },
+        "cps_rate_limit": {
+          "type": "string",
+          "description": "CPS rate limit (e.g., '1k/s', '100k/s'). Default is 100000 if cps is enabled. Only used when cps=true",
           "optional": true
         },
         "port": {
@@ -93,7 +98,7 @@
         },
         "bitrate": {
           "type": "string",
-          "description": "Target bitrate (e.g., '1M', '100M')",
+          "description": "Target bitrate (e.g., '1M', '100M'). Mutually exclusive with cps",
           "optional": true
         },
         "parallel": {
@@ -247,6 +252,20 @@
         "test_id": "abc123-def456",
         "server_ip": "192.168.1.100",
         "client_ip": "192.168.1.200",
+        "time": 120,
+        "parallel": 4
+      }
+    },
+    {
+      "title": "Client with CPS Rate Limit",
+      "description": "Connect a client with specific CPS rate limit",
+      "tool": "start_cyperf_client",
+      "parameters": {
+        "test_id": "abc123-def456",
+        "server_ip": "192.168.1.100",
+        "client_ip": "192.168.1.200",
+        "cps": true,
+        "cps_rate_limit": "1k/s",
         "time": 120,
         "parallel": 4
       }

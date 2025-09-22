@@ -9,6 +9,7 @@ class ServerParams(BaseModel):
 
 class ClientParams(BaseModel):
     cps: Optional[bool] = False
+    cps_rate_limit: Optional[str] = None  # e.g., "1k/s", "100k/s", default is 100000
     port: Optional[int] = 5202
     length: Optional[str] = "1k"
     time: Optional[int] = 60

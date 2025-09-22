@@ -78,10 +78,18 @@ class MCPCyperfServer:
                                 "type": "string", 
                                 "description": "IP address of the Cyperf server"
                             },
+                            "client_ip": {
+                                "type": "string", 
+                                "description": "IP address of the client machine where Cyperf client will run"
+                            },
                             "cps": {
                                 "type": "boolean",
-                                "description": "Enable connection per second mode",
+                                "description": "Enable connection per second mode. Mutually exclusive with bitrate",
                                 "default": False
+                            },
+                            "cps_rate_limit": {
+                                "type": "string",
+                                "description": "CPS rate limit (e.g., '1k/s', '100k/s'). Default is 100000 if cps is enabled. Only used when cps=true"
                             },
                             "port": {
                                 "type": "integer",
@@ -105,7 +113,7 @@ class MCPCyperfServer:
                             },
                             "bitrate": {
                                 "type": "string",
-                                "description": "Target bitrate (e.g., '1M', '100M')"
+                                "description": "Target bitrate (e.g., '1M', '100M'). Mutually exclusive with cps"
                             },
                             "parallel": {
                                 "type": "integer",
@@ -127,7 +135,7 @@ class MCPCyperfServer:
                                 "description": "Statistics reporting interval in seconds"
                             }
                         },
-                        "required": ["test_id", "server_ip"]
+                        "required": ["test_id", "server_ip", "client_ip"]
                     }
                 ),
                 Tool(

@@ -59,16 +59,23 @@ class CyperfService:
         if test_id not in self.active_tests:
             raise Exception("Server not started for this test_id")
         command = f"nohup sudo cyperf -c {server_ip}"
+        # CPS and bitrate are mutually exclusive
         if params.get("cps"):
-            command += " --cps"
+            # Handle CPS rate limit if provided
+            if params.get("cps_rate_limit"):
+                command += f" --cps {params['cps_rate_limit']}"
+            else:
+                command += " --cps"
+        elif params.get("bitrate"):
+            # Only add bitrate if CPS is not enabled
+            command += f" --bitrate {params['bitrate']}"
+        
         if params.get("port"):
             command += f" --port {params['port']}"
         if params.get("length"):
             command += f" --length {params['length']}"
         if params.get("time"):
             command += f" --time {params['time']}"
-        if params.get("bitrate"):
-            command += f" --bitrate {params['bitrate']}"
         if params.get("parallel"):
             command += f" --parallel {params['parallel']}"
         if params.get("reverse"):
