@@ -84,6 +84,40 @@ async def get_client_stats_image(test_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/server/logs/{test_id}", tags=["Cyperf CE Server"])
+async def get_server_logs(test_id: str):
+    """
+    Get server log file contents for debugging
+    Returns the contents of {test_id}_server.log file
+    """
+    try:
+        logs = cyperf_service.read_server_logs(test_id)
+        return {
+            "test_id": test_id,
+            "log_type": "server",
+            "log_file": f"{test_id}_server.log",
+            "content": logs
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/client/logs/{test_id}", tags=["Cyperf CE Client"])
+async def get_client_logs(test_id: str):
+    """
+    Get client log file contents for debugging
+    Returns the contents of {test_id}_client.log file
+    """
+    try:
+        logs = cyperf_service.read_client_logs(test_id)
+        return {
+            "test_id": test_id,
+            "log_type": "client", 
+            "log_file": f"{test_id}_client.log",
+            "content": logs
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # MCP HTTP Endpoint for Streamable HTTP
 @router.post("/mcp", tags=["MCP"])

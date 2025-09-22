@@ -14,7 +14,8 @@ The typical workflow for using this API is:
 1. **Start Server** → Get `test_id`
 2. **Start Client** → Use the `test_id` from step 1
 3. **Get Statistics** → Monitor performance using `test_id`
-4. **Cleanup** → Stop server processes when done
+4. **Get Log Files** → Debug issues using `test_id` (if needed)
+5. **Cleanup** → Stop server processes when done
 
 ---
 
@@ -270,7 +271,61 @@ curl -X 'GET' \
 
 ---
 
-## 5. Cleanup Server
+## 5. Get Log Files
+
+Retrieve log file contents for debugging purposes. These logs contain the execution output and any errors from the Cyperf processes.
+
+### 5.1 Get Server Logs
+
+#### Endpoint
+```
+GET /api/server/logs/{test_id}
+```
+
+#### Sample cURL Command
+```bash
+curl -X 'GET' \
+  'http://localhost:8000/api/server/logs/a933502b-f30d-4d13-8486-ab5e380d9a4e' \
+  -H 'accept: application/json'
+```
+
+#### Sample Response
+```json
+{
+  "test_id": "a933502b-f30d-4d13-8486-ab5e380d9a4e",
+  "log_type": "server",
+  "log_file": "a933502b-f30d-4d13-8486-ab5e380d9a4e_server.log",
+  "content": "Cyperf server started on 192.168.1.100:5202\nListening for connections...\nConnection established from 192.168.1.101\nTransferring data...\nTest completed successfully\n"
+}
+```
+
+### 5.2 Get Client Logs
+
+#### Endpoint
+```
+GET /api/client/logs/{test_id}
+```
+
+#### Sample cURL Command
+```bash
+curl -X 'GET' \
+  'http://localhost:8000/api/client/logs/a933502b-f30d-4d13-8486-ab5e380d9a4e' \
+  -H 'accept: application/json'
+```
+
+#### Sample Response
+```json
+{
+  "test_id": "a933502b-f30d-4d13-8486-ab5e380d9a4e",
+  "log_type": "client",
+  "log_file": "a933502b-f30d-4d13-8486-ab5e380d9a4e_client.log",
+  "content": "Connecting to server 192.168.1.100:5202\nConnection established\nStarting data transfer\nTransfer rate: 95.2 Mbps\nTest completed in 60 seconds\n"
+}
+```
+
+---
+
+## 6. Cleanup Server
 
 Stops all Cyperf server processes on the specified server machine.
 
@@ -367,7 +422,18 @@ curl -X 'GET' \
   'http://localhost:8000/api/client/stats/b1a741a0-9837-455e-b7f0-59cae0bb358c'
 ```
 
-### Step 4: Cleanup
+### Step 4: Get Log Files (Optional - for debugging)
+```bash
+# Get server logs
+curl -X 'GET' \
+  'http://localhost:8000/api/server/logs/b1a741a0-9837-455e-b7f0-59cae0bb358c'
+
+# Get client logs
+curl -X 'GET' \
+  'http://localhost:8000/api/client/logs/b1a741a0-9837-455e-b7f0-59cae0bb358c'
+```
+
+### Step 5: Cleanup
 ```bash
 # Stop server processes
 curl -X 'DELETE' \
@@ -445,8 +511,12 @@ These provide an interactive interface to test all endpoints directly from your 
 
 2. **SSH Requirements**: The API requires SSH access to both server and client machines with appropriate credentials configured.
 
-3. **File Paths**: CSV statistics files are saved as `{test_id}.csv` on the respective machines.
+3. **File Paths**: 
+   - CSV statistics files are saved as `{test_id}_server.csv` and `{test_id}_client.csv` on the respective machines
+   - Log files are saved as `{test_id}_server.log` and `{test_id}_client.log` on the respective machines
 
-4. **Process Management**: The cleanup endpoint stops all Cyperf processes on the specified server machine.
+4. **Log Files**: Log endpoints provide access to execution logs for debugging. Logs contain command output, errors, and process information.
 
-5. **Concurrent Tests**: You can run multiple tests simultaneously by using different server machines or different ports.
+5. **Process Management**: The cleanup endpoint stops all Cyperf processes on the specified server machine.
+
+6. **Concurrent Tests**: You can run multiple tests simultaneously by using different server machines or different ports.

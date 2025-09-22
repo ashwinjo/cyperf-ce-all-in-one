@@ -196,4 +196,48 @@ class CyperfService:
         img_bytes.seek(0)
         return img_bytes
 
+    def read_server_logs(self, test_id: str) -> str:
+        """Read server log file for the given test_id"""
+        if test_id not in self.active_tests:
+            raise Exception("Test not found")
+        
+        server_ip = self.active_tests[test_id].get("server_ip", settings.SERVER_IP)
+        log_path = f"{test_id}_server.log"
+        
+        ssh = self._connect_ssh(server_ip)
+        sftp = ssh.open_sftp()
+        
+        try:
+            with sftp.open(log_path, 'r') as f:
+                log_content = f.read()
+        except FileNotFoundError:
+            raise Exception(f"Server log file not found: {log_path}")
+        finally:
+            sftp.close()
+            ssh.close()
+            
+        return log_content
+
+    def read_client_logs(self, test_id: str) -> str:
+        """Read client log file for the given test_id"""
+        if test_id not in self.active_tests:
+            raise Exception("Test not found")
+        
+        client_ip = self.active_tests[test_id].get("client_ip", settings.CLIENT_IP)
+        log_path = f"{test_id}_client.log"
+        
+        ssh = self._connect_ssh(client_ip)
+        sftp = ssh.open_sftp()
+        
+        try:
+            with sftp.open(log_path, 'r') as f:
+                log_content = f.read()
+        except FileNotFoundError:
+            raise Exception(f"Client log file not found: {log_path}")
+        finally:
+            sftp.close()
+            ssh.close()
+            
+        return log_content
+
 
