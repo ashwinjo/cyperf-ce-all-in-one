@@ -1,0 +1,452 @@
+/* Cyperf-CE Test Controller Custom Tailwind Styles */
+/* Color Scheme: Red (#DC3545), White (#FFFFFF), Black (#000000), Dark Grey (#212529) */
+
+/* Chart Container Styles */
+.chart-container {
+    @apply bg-white rounded-lg p-4 my-4;
+    color: #000000; /* Keep black text in white chart containers for readability */
+}
+
+/* Log Container Styles */
+.log-container {
+    @apply bg-black border border-gray-600 text-white font-mono text-sm h-48 overflow-y-auto whitespace-pre-wrap;
+    word-break: break-all;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    @apply w-8 h-8 border-4 border-gray-600 border-t-cyperf-red rounded-full animate-spin;
+}
+
+/* Stats Panel Styles */
+.stats-panel {
+    @apply bg-cyperf-grey rounded-lg p-4 text-center;
+}
+
+.stats-label {
+    @apply text-gray-400 text-sm font-medium uppercase tracking-wide;
+}
+
+.stats-value {
+    @apply text-white text-2xl font-bold mt-2;
+}
+
+/* Chart Container */
+.chart-container {
+    position: relative;
+    width: 100%;
+    background: #1F2937;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #1F2937;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #4B5563;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #6B7280;
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+    background: #1F2937;
+}
+
+/* Form Styles */
+.form-input {
+    @apply bg-cyperf-grey border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyperf-red focus:border-transparent;
+    color: #DC3545 !important; /* Force red text color */
+}
+
+.form-input::placeholder {
+    color: #DC3545 !important; /* Red placeholder text */
+    opacity: 0.7;
+}
+
+.form-select {
+    @apply bg-cyperf-grey border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyperf-red focus:border-transparent;
+    color: #DC3545 !important; /* Force red text color */
+}
+
+/* Additional input type coverage */
+input[type="text"].form-input,
+input[type="number"].form-input,
+input[type="email"].form-input,
+input[type="password"].form-input,
+select.form-select {
+    color: #DC3545 !important; /* Ensure red text for all input types */
+}
+
+.form-label {
+    @apply text-white font-medium mb-2 block;
+}
+
+.form-text {
+    @apply text-gray-400 text-sm mt-1;
+}
+
+/* Button Styles */
+.btn-primary {
+    @apply bg-green-500 hover:bg-green-400 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-300;
+    background: linear-gradient(135deg, #10B981, #059669);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    cursor: pointer;
+    border: 2px solid #059669;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #34D399, #10B981);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+    border-color: #10B981;
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.btn-secondary {
+    @apply bg-blue-500 hover:bg-blue-400 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300;
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    cursor: pointer;
+    border: 2px solid #2563EB;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #60A5FA, #3B82F6);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
+    border-color: #3B82F6;
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
+.btn-outline {
+    @apply border-3 border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black font-bold py-3 px-6 rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-yellow-300;
+    background: transparent;
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+    cursor: pointer;
+    border-width: 3px;
+}
+
+.btn-outline:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #FDE047, #FACC15);
+    box-shadow: 0 8px 25px rgba(251, 191, 36, 0.6);
+    color: #000;
+}
+
+.btn-outline:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4);
+}
+
+.btn-sm {
+    @apply py-1 px-3 text-sm;
+}
+
+/* Interactive Card Elements */
+.card-clickable {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.card-clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Navigation Links */
+.nav-link {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.nav-link:hover {
+    transform: translateY(-1px);
+    text-shadow: 0 0 8px rgba(220, 53, 69, 0.6);
+}
+
+/* Form Submit Button Enhancement */
+#runTestBtn {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #10B981, #059669, #047857) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5) !important;
+    border: 3px solid #059669 !important;
+    font-size: 1.1rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+}
+
+#runTestBtn:hover {
+    transform: translateY(-3px) !important;
+    background: linear-gradient(135deg, #34D399, #10B981, #059669) !important;
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.7) !important;
+    border-color: #10B981 !important;
+}
+
+#runTestBtn:active {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.6) !important;
+}
+
+/* Progress Bar Enhancement */
+.progress-container {
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.progress-bar {
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.btn-lg {
+    @apply py-3 px-6 text-lg;
+}
+
+/* Card Styles */
+.card {
+    @apply bg-cyperf-grey rounded-lg shadow-lg;
+}
+
+.card-header {
+    @apply bg-gray-800 px-6 py-4 rounded-t-lg border-b border-gray-600;
+}
+
+.card-body {
+    @apply p-6;
+}
+
+.card-footer {
+    @apply bg-gray-800 px-6 py-4 rounded-b-lg border-t border-gray-600;
+}
+
+/* Progress Bar Styles */
+.progress-bar {
+    @apply bg-cyperf-red h-full transition-all duration-300 rounded-full flex items-center justify-center text-white text-sm font-medium;
+}
+
+.progress-container {
+    @apply bg-gray-700 rounded-full h-6 overflow-hidden;
+}
+
+/* Alert Styles */
+.alert {
+    @apply p-4 rounded-lg border-l-4 mb-4;
+}
+
+.alert-success {
+    @apply bg-green-900/20 border-green-500 text-green-200;
+}
+
+.alert-error {
+    @apply bg-red-900/20 border-red-500 text-red-200;
+}
+
+.alert-warning {
+    @apply bg-yellow-900/20 border-yellow-500 text-yellow-200;
+}
+
+.alert-info {
+    @apply bg-blue-900/20 border-blue-500 text-blue-200;
+}
+
+/* Table Styles */
+.table {
+    @apply w-full text-left border-collapse;
+}
+
+.table th {
+    @apply bg-gray-800 text-gray-200 font-semibold p-3 border-b border-gray-600;
+}
+
+.table td {
+    @apply p-3 border-b border-gray-700 text-gray-300;
+}
+
+.table tbody tr:hover {
+    @apply bg-gray-800/50;
+}
+
+/* Badge Styles */
+.badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-success {
+    @apply bg-green-100 text-green-800;
+}
+
+.badge-error {
+    @apply bg-red-100 text-red-800;
+}
+
+.badge-warning {
+    @apply bg-yellow-100 text-yellow-800;
+}
+
+.badge-info {
+    @apply bg-blue-100 text-blue-800;
+}
+
+.badge-secondary {
+    @apply bg-gray-100 text-gray-800;
+}
+
+/* Modal/Dialog Styles */
+.modal-overlay {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+}
+
+.modal-content {
+    @apply bg-cyperf-grey rounded-lg shadow-xl max-w-lg w-full mx-4;
+}
+
+.modal-header {
+    @apply px-6 py-4 border-b border-gray-600;
+}
+
+.modal-body {
+    @apply px-6 py-4;
+}
+
+.modal-footer {
+    @apply px-6 py-4 border-t border-gray-600 flex justify-end space-x-3;
+}
+
+/* Log Entry Styles */
+.log-entry {
+    @apply mb-1 p-2 rounded;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.log-error {
+    @apply bg-red-900/20;
+}
+
+.log-warning {
+    @apply bg-yellow-900/20;
+}
+
+.log-info {
+    @apply bg-blue-900/20;
+}
+
+.log-debug {
+    @apply bg-gray-900/20;
+}
+
+.log-message {
+    @apply break-words;
+}
+
+/* Status Indicators */
+.status-idle {
+    @apply text-gray-400;
+}
+
+.status-running {
+    @apply text-green-400;
+}
+
+.status-completed {
+    @apply text-blue-400;
+}
+
+.status-error {
+    @apply text-red-400;
+}
+
+.status-cancelled {
+    @apply text-yellow-400;
+}
+
+/* Responsive Grid Utilities */
+.grid-responsive {
+    @apply grid gap-6;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.grid-2-cols {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+}
+
+.grid-3-cols {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.grid-4-cols {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6;
+}
+
+/* Animation Utilities */
+.fade-in {
+    @apply opacity-0 animate-pulse;
+    animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+.slide-in {
+    @apply transform translate-x-full;
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+@keyframes slideIn {
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #DC3545 #343A40;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #343A40;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #DC3545;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #c82333;
+}
+
+/* Focus Styles */
+.focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-cyperf-red focus:ring-offset-2 focus:ring-offset-cyperf-dark;
+}

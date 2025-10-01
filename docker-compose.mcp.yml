@@ -20,6 +20,29 @@ services:
     networks:
       - cyperf-network
 
+  # Flask Frontend service
+  flask-frontend:
+    build:
+      context: ./cce_flask
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=false
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - CYPERF_API_BASE_URL=http://fastapi:8000/api
+      - CYPERF_API_TIMEOUT=30
+      - DEFAULT_TEST_DURATION=60
+      - DEFAULT_SNAPSHOT_INTERVAL=5
+      - DEFAULT_SERVER_IP=${SERVER_IP:-127.0.0.1}
+      - DEFAULT_CLIENT_IP=${CLIENT_IP:-127.0.0.1}
+      - PORT=5000
+    depends_on:
+      - fastapi
+    networks:
+      - cyperf-network
+
   # MCP Server service (stdio)
   mcp-server:
     build:

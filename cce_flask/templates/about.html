@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}About & Tutorials - Cyperf-CE Test Controller{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-cyperf-red text-3xl font-bold flex items-center">
+            <svg class="w-8 h-8 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            About & Tutorials
+        </h2>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex border-b border-gray-600">
+        <button type="button" class="px-6 py-3 text-sm font-medium border-b-2 border-cyperf-red text-cyperf-red" 
+                onclick="showSection('about')" id="aboutTab">
+            About
+        </button>
+        <button type="button" class="px-6 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white" 
+                onclick="showSection('getting-started')" id="gettingStartedTab">
+            Getting Started
+        </button>
+        <button type="button" class="px-6 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white" 
+                onclick="showSection('tutorials')" id="tutorialsTab">
+            Tutorials
+        </button>
+        <button type="button" class="px-6 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white" 
+                onclick="showSection('api-reference')" id="apiReferenceTab">
+            API Reference
+        </button>
+        <button type="button" class="px-6 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white" 
+                onclick="showSection('troubleshooting')" id="troubleshootingTab">
+            Troubleshooting
+        </button>
+        <button type="button" class="px-6 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white" 
+                onclick="showSection('faq')" id="faqTab">
+            FAQ
+        </button>
+    </div>
+
+    <!-- About Section -->
+    <div id="aboutSection" class="space-y-8">
+        <!-- Overview -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-xl font-semibold text-white">Cyperf-CE Test Controller</h3>
+                <p class="text-gray-400 mt-1">Overview</p>
+            </div>
+            <div class="card-body space-y-4">
+                <p class="text-gray-300 leading-relaxed">
+                    The Cyperf-CE Test Controller is a modern Flask-based web application designed to provide an intuitive 
+                    and efficient user experience for configuring, running, and monitoring network performance tests using 
+                    the cyperf-ce network traffic generator.
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="stats-panel">
+                        <div class="stats-label">Key Features</div>
+                        <div class="space-y-2 mt-3">
+                            <div class="flex items-center text-sm text-gray-300">
+                                <svg class="w-4 h-4 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                <span><strong>Test Parameters Configuration:</strong> Easy-to-use forms for setting up throughput and CPS tests</span>
+                            </div>
+                            <div class="flex items-center text-sm text-gray-300">
+                                <svg class="w-4 h-4 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                <span><strong>Real-time Statistics:</strong> Live monitoring of test progress with interactive charts</span>
+                            </div>
+                            <div class="flex items-center text-sm text-gray-300">
+                                <svg class="w-4 h-4 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                <span><strong>Log Streaming:</strong> Real-time client and server log viewing with filtering capabilities</span>
+                            </div>
+                            <div class="flex items-center text-sm text-gray-300">
+                                <svg class="w-4 h-4 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                <span><strong>Responsive Design:</strong> Works seamlessly across desktop, tablet, and mobile devices</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-panel">
+                        <div class="stats-label">Technology Stack</div>
+                        <div class="space-y-3 mt-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-300">Backend:</span>
+                                <span class="text-sm text-cyperf-red">Flask (Python)</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-300">Frontend:</span>
+                                <span class="text-sm text-cyperf-red">Tailwind CSS</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-300">Charts:</span>
+                                <span class="text-sm text-cyperf-red">Chart.js</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-300">AJAX:</span>
+                                <span class="text-sm text-cyperf-red">jQuery</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-300">Icons:</span>
+                                <span class="text-sm text-cyperf-red">Heroicons (SVG)</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-300">API Client:</span>
+                                <span class="text-sm text-cyperf-red">Python Requests</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Application Information -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-xl font-semibold text-white">Application Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="stats-panel">
+                        <div class="stats-label">Version</div>
+                        <div class="stats-value">1.0.0</div>
+                    </div>
+                    <div class="stats-panel">
+                        <div class="stats-label">Framework</div>
+                        <div class="stats-value">Flask</div>
+                    </div>
+                    <div class="stats-panel">
+                        <div class="stats-label">Python Version</div>
+                        <div class="stats-value">3.8+</div>
+                    </div>
+                    <div class="stats-panel">
+                        <div class="stats-label">License</div>
+                        <div class="stats-value">MIT</div>
+                    </div>
+                    <div class="stats-panel">
+                        <div class="stats-label">API Port</div>
+                        <div class="stats-value">8000</div>
+                    </div>
+                    <div class="stats-panel">
+                        <div class="stats-label">Web Port</div>
+                        <div class="stats-value">5000</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Getting Started Section -->
+    <div id="gettingStartedSection" class="hidden space-y-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-xl font-semibold text-white">Quick Start Guide</h3>
+            </div>
+            <div class="card-body space-y-6">
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-8 h-8 bg-cyperf-red rounded-full flex items-center justify-center text-white font-bold text-sm mr-4">
+                            1
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-white mb-2">Configure Test Parameters</h4>
+                            <p class="text-gray-300">Navigate to the Test Parameters section and configure your server and client IP addresses, test type (throughput or CPS), and other parameters.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-8 h-8 bg-cyperf-red rounded-full flex items-center justify-center text-white font-bold text-sm mr-4">
+                            2
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-white mb-2">Start Your Test</h4>
+                            <p class="text-gray-300">Click the "Run Test" button to start your network performance test. The system will automatically start the server and client components.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-8 h-8 bg-cyperf-red rounded-full flex items-center justify-center text-white font-bold text-sm mr-4">
+                            3
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-white mb-2">Monitor Statistics</h4>
+                            <p class="text-gray-300">Switch to the Statistics & Graphs section to view real-time performance metrics, charts, and test progress.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-8 h-8 bg-cyperf-red rounded-full flex items-center justify-center text-white font-bold text-sm mr-4">
+                            4
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-white mb-2">View Logs</h4>
+                            <p class="text-gray-300">Check the Test Logs section for detailed client and server logs, with filtering and search capabilities.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tutorials Section -->
+    <div id="tutorialsSection" class="hidden space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-xl font-semibold text-white">Running a Throughput Test</h3>
+                </div>
+                <div class="card-body space-y-4">
+                    <p class="text-gray-300">Learn how to configure and run a basic throughput test to measure network bandwidth.</p>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-gray-300">
+                        <li>Set Test Type to "Throughput Test"</li>
+                        <li>Configure server and client IP addresses</li>
+                        <li>Set target bandwidth (e.g., 100 Mbps)</li>
+                        <li>Adjust packet size if needed (default: 1500 bytes)</li>
+                        <li>Set test duration (default: 60 seconds)</li>
+                        <li>Click "Run Test" to start</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-xl font-semibold text-white">Running a CPS Test</h3>
+                </div>
+                <div class="card-body space-y-4">
+                    <p class="text-gray-300">Learn how to configure and run a connections per second (CPS) test.</p>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-gray-300">
+                        <li>Set Test Type to "Connections Per Second (CPS) Test"</li>
+                        <li>Configure server and client IP addresses</li>
+                        <li>Set target CPS rate (e.g., 1000 CPS)</li>
+                        <li>Set concurrent connections limit</li>
+                        <li>Set test duration</li>
+                        <li>Click "Run Test" to start</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Reference Section -->
+    <div id="apiReferenceSection" class="hidden space-y-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-xl font-semibold text-white">REST API Endpoints</h3>
+            </div>
+            <div class="card-body space-y-6">
+                <div class="space-y-4">
+                    <div class="border border-gray-600 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <span class="badge badge-success mr-2">POST</span>
+                            <code class="text-cyperf-red">/api/start_server</code>
+                        </div>
+                        <p class="text-gray-300 text-sm">Start the cyperf-ce server with test configuration</p>
+                    </div>
+                    
+                    <div class="border border-gray-600 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <span class="badge badge-success mr-2">POST</span>
+                            <code class="text-cyperf-red">/api/start_client</code>
+                        </div>
+                        <p class="text-gray-300 text-sm">Start the cyperf-ce client for the specified test</p>
+                    </div>
+                    
+                    <div class="border border-gray-600 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <span class="badge badge-info mr-2">GET</span>
+                            <code class="text-cyperf-red">/api/server/stats/{test_id}</code>
+                        </div>
+                        <p class="text-gray-300 text-sm">Get current server statistics for the specified test</p>
+                    </div>
+                    
+                    <div class="border border-gray-600 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <span class="badge badge-info mr-2">GET</span>
+                            <code class="text-cyperf-red">/api/client/stats/{test_id}</code>
+                        </div>
+                        <p class="text-gray-300 text-sm">Get current client statistics for the specified test</p>
+                    </div>
+                    
+                    <div class="border border-gray-600 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <span class="badge badge-success mr-2">POST</span>
+                            <code class="text-cyperf-red">/api/stop_server</code>
+                        </div>
+                        <p class="text-gray-300 text-sm">Stop and cleanup all cyperf server processes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Troubleshooting Section -->
+    <div id="troubleshootingSection" class="hidden space-y-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-xl font-semibold text-white">Common Issues</h3>
+            </div>
+            <div class="card-body space-y-6">
+                <div class="space-y-4">
+                    <div class="border border-gray-600 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-2">Test fails to start</h4>
+                        <p class="text-gray-300 mb-2">Check the following:</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-gray-300 ml-4">
+                            <li>Verify server and client IP addresses are reachable</li>
+                            <li>Ensure cyperf-ce API server is running on port 8000</li>
+                            <li>Check firewall settings for the specified ports</li>
+                            <li>Verify network connectivity between server and client</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="border border-gray-600 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-2">No statistics showing</h4>
+                        <p class="text-gray-300 mb-2">Possible causes:</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-gray-300 ml-4">
+                            <li>Test may not have started successfully</li>
+                            <li>Statistics collection interval may be too high</li>
+                            <li>Network issues preventing data collection</li>
+                            <li>Browser JavaScript errors (check console)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="border border-gray-600 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-2">Charts not displaying</h4>
+                        <p class="text-gray-300 mb-2">Try these solutions:</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-gray-300 ml-4">
+                            <li>Refresh the page and try again</li>
+                            <li>Check browser compatibility (modern browsers required)</li>
+                            <li>Verify Chart.js library is loading properly</li>
+                            <li>Clear browser cache and reload</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div id="faqSection" class="hidden space-y-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-xl font-semibold text-white">Frequently Asked Questions</h3>
+            </div>
+            <div class="card-body space-y-6">
+                <div class="space-y-4">
+                    <div class="border border-gray-600 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-2">What is the difference between throughput and CPS tests?</h4>
+                        <p class="text-gray-300 text-sm">Throughput tests measure the maximum data transfer rate (bandwidth) between client and server, while CPS (Connections Per Second) tests measure how many new connections can be established per second.</p>
+                    </div>
+                    
+                    <div class="border border-gray-600 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-2">Can I run tests between different networks?</h4>
+                        <p class="text-gray-300 text-sm">Yes, as long as the server and client IP addresses are reachable from each other and the necessary ports are open in firewalls.</p>
+                    </div>
+                    
+                    <div class="border border-gray-600 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-2">What ports does cyperf-ce use?</h4>
+                        <p class="text-gray-300 text-sm">The cyperf-ce API server runs on port 8000 by default. Test traffic uses configurable ports (default 5202). The web interface runs on port 5000.</p>
+                    </div>
+                    
+                    <div class="border border-gray-600 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-2">How long can I run a test?</h4>
+                        <p class="text-gray-300 text-sm">Tests can run from 1 second to 1 hour (3600 seconds). Longer tests provide more stable and accurate results.</p>
+                    </div>
+                    
+                    <div class="border border-gray-600 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-2">Can I export test results?</h4>
+                        <p class="text-gray-300 text-sm">Yes, you can export statistics data and charts from the Statistics section, and export logs from the Test Logs section.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Container -->
+<div id="alertContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Tab switching functionality
+function showSection(sectionName) {
+    // Hide all sections
+    const sections = ['about', 'getting-started', 'tutorials', 'api-reference', 'troubleshooting', 'faq'];
+    sections.forEach(section => {
+        const sectionElement = document.getElementById(section.replace('-', '') + 'Section');
+        const tabElement = document.getElementById(section.replace('-', '') + 'Tab');
+        
+        if (sectionElement) {
+            sectionElement.classList.add('hidden');
+        }
+        if (tabElement) {
+            tabElement.classList.remove('border-cyperf-red', 'text-cyperf-red');
+            tabElement.classList.add('border-transparent', 'text-gray-400');
+        }
+    });
+    
+    // Show selected section
+    const targetSection = document.getElementById(sectionName.replace('-', '') + 'Section');
+    const targetTab = document.getElementById(sectionName.replace('-', '') + 'Tab');
+    
+    if (targetSection) {
+        targetSection.classList.remove('hidden');
+    }
+    if (targetTab) {
+        targetTab.classList.remove('border-transparent', 'text-gray-400');
+        targetTab.classList.add('border-cyperf-red', 'text-cyperf-red');
+    }
+}
+
+// Initialize with About section
+document.addEventListener('DOMContentLoaded', function() {
+    showSection('about');
+});
+</script>
+{% endblock %}

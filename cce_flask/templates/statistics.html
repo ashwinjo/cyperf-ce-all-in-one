@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics & Graphs - Cyperf-CE Test Controller{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-cyperf-red text-3xl font-bold flex items-center">
+            <svg class="w-8 h-8 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+            </svg>
+            Statistics & Graphs
+        </h2>
+        <div class="flex space-x-3">
+            <button type="button" class="btn-outline" onclick="refreshStats()">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                </svg>
+                Refresh
+            </button>
+            <button type="button" class="btn-outline" onclick="exportData()">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"/>
+                </svg>
+                Export Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Active Tests -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-xl font-semibold text-white">Active Tests</h3>
+        </div>
+        <div class="card-body">
+            <div id="activeTestsContainer">
+                <div class="flex items-center justify-center py-12">
+                    <div class="loading-spinner mr-4"></div>
+                    <p class="text-gray-300">Loading active tests...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Content -->
+    <div id="statisticsContent" class="hidden space-y-8">
+        <!-- Current Test Status -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-xl font-semibold text-white">Current Test Status</h3>
+            </div>
+            <div class="card-body">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 space-y-4">
+                        <div class="progress-container">
+                            <div class="progress-bar" id="currentTestProgress" style="width: 0%">0%</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="stats-panel">
+                                <div class="stats-label">Status</div>
+                                <div class="stats-value status-idle" id="currentTestStatus">Idle</div>
+                            </div>
+                            <div class="stats-panel">
+                                <div class="stats-label">Elapsed Time</div>
+                                <div class="stats-value" id="currentTestElapsed">00:00</div>
+                            </div>
+                            <div class="stats-panel">
+                                <div class="stats-label">Remaining</div>
+                                <div class="stats-value" id="currentTestRemaining">--:--</div>
+                            </div>
+                            <div class="stats-panel">
+                                <div class="stats-label">Test Type</div>
+                                <div class="stats-value" id="currentTestType">--</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <button type="button" class="w-full btn-outline" id="cancelTestBtn" onclick="cancelCurrentTest()" disabled>
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                            Cancel Test
+                        </button>
+                        <button type="button" class="w-full btn-primary" onclick="window.location.href='/parameters'">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                            </svg>
+                            Start New Test
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Statistics -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Server Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-xl font-semibold text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                        </svg>
+                        Server Statistics
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="stats-panel">
+                            <div class="stats-label">Throughput</div>
+                            <div class="stats-value" id="serverThroughput">0 Mbps</div>
+                        </div>
+                        <div class="stats-panel">
+                            <div class="stats-label">Bytes Transferred</div>
+                            <div class="stats-value" id="serverBytes">0 B</div>
+                        </div>
+                        <div class="stats-panel">
+                            <div class="stats-label">Connections/Sec</div>
+                            <div class="stats-value" id="serverCPS">0</div>
+                        </div>
+                        <div class="stats-panel">
+                            <div class="stats-label">Active Connections</div>
+                            <div class="stats-value" id="serverConnections">0</div>
+                        </div>
+                        <div class="stats-panel col-span-2">
+                            <div class="stats-label">Errors</div>
+                            <div class="stats-value" id="serverErrors">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Client Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-xl font-semibold text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 11-2 0V4zm9 1a1 1 0 110-2h4a1 1 0 011 1v4a1 1 0 11-2 0V6.414l-2.293 2.293a1 1 0 01-1.414-1.414L13.586 5H12zm-9 7a1 1 0 112 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 110 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 110-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15.586 13H14a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        Client Statistics
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="stats-panel">
+                            <div class="stats-label">Throughput</div>
+                            <div class="stats-value" id="clientThroughput">0 Mbps</div>
+                        </div>
+                        <div class="stats-panel">
+                            <div class="stats-label">Bytes Transferred</div>
+                            <div class="stats-value" id="clientBytes">0 B</div>
+                        </div>
+                        <div class="stats-panel">
+                            <div class="stats-label">Connections/Sec</div>
+                            <div class="stats-value" id="clientCPS">0</div>
+                        </div>
+                        <div class="stats-panel">
+                            <div class="stats-label">Active Connections</div>
+                            <div class="stats-value" id="clientConnections">0</div>
+                        </div>
+                        <div class="stats-panel col-span-2">
+                            <div class="stats-label">Errors</div>
+                            <div class="stats-value" id="clientErrors">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Charts -->
+        <div class="card">
+            <div class="card-header">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-white">Performance Charts</h3>
+                    <div class="flex space-x-2">
+                        <button type="button" class="btn-outline btn-sm" onclick="resetAllChartsZoom()">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                            </svg>
+                            Reset Zoom
+                        </button>
+                        <button type="button" class="btn-outline btn-sm" onclick="exportAllCharts()">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"/>
+                            </svg>
+                            Export Charts
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body space-y-6">
+                <!-- Chart Controls -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label">Chart Type</label>
+                        <select class="form-select w-full" id="chartTypeSelector" onchange="switchChartType()">
+                            <option value="throughput">Throughput (Mbps)</option>
+                            <option value="cps">Connections per Second</option>
+                            <option value="errors">Error Count</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Time Range</label>
+                        <select class="form-select w-full" id="timeRangeSelector" onchange="updateTimeRange()">
+                            <option value="all">All Data</option>
+                            <option value="last_60">Last 60 seconds</option>
+                            <option value="last_300">Last 5 minutes</option>
+                            <option value="last_900">Last 15 minutes</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Main Performance Chart -->
+                <div class="chart-container">
+                    <canvas id="performanceChart" width="400" height="200"></canvas>
+                </div>
+                
+                <!-- Chart Help -->
+                <div class="text-center">
+                    <p class="text-sm text-gray-400">
+                        <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        Use mouse wheel to zoom, drag to pan. Double-click to reset zoom.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- CPS Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-xl font-semibold text-white">Connections Per Second</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="cpsChart" width="400" height="150"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Error Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-xl font-semibold text-white">Error Analysis</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="errorChart" width="400" height="150"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test History -->
+        <div class="card">
+            <div class="card-header">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-white">Test History</h3>
+                    <button type="button" class="btn-outline btn-sm" onclick="clearHistory()">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                            <path fill-rule="evenodd" d="M10 5a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2H10zm0 2h6v6h-6V7z" clip-rule="evenodd"/>
+                        </svg>
+                        Clear History
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="overflow-x-auto">
+                    <table class="table" id="testHistoryTable">
+                        <thead>
+                            <tr>
+                                <th>Test ID</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Start Time</th>
+                                <th>Duration</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- History rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Container -->
+<div id="alertContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/statistics.js') }}"></script>
+{% endblock %}

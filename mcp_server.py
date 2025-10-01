@@ -60,6 +60,11 @@ class MCPCyperfServer:
                                 "type": "boolean",
                                 "description": "Enable CSV statistics output",
                                 "default": True
+                            },
+                            "bidi": {
+                                "type": "boolean",
+                                "description": "Enable bidirectional mode",
+                                "default": False
                             }
                         }
                     }
@@ -264,7 +269,8 @@ class MCPCyperfServer:
                 "cps": arguments.get("cps", False),
                 "port": arguments.get("port", 5202),
                 "length": arguments.get("length", "1k"),
-                "csv_stats": arguments.get("csv_stats", True)
+                "csv_stats": arguments.get("csv_stats", True),
+                "bidi": arguments.get("bidi", False)
             }
         }
         

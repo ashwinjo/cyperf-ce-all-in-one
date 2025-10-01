@@ -25,7 +25,7 @@ log_warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
-log_error() {
+log_error() {image.pngimage.png
     echo -e "${RED}[ERROR]${NC} $1"
 }
 

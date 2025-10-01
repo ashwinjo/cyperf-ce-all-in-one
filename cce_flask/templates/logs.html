@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Test Logs - Cyperf-CE Test Controller{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-cyperf-red text-3xl font-bold flex items-center">
+            <svg class="w-8 h-8 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 11-2 0V4zm9 1a1 1 0 110-2h4a1 1 0 011 1v4a1 1 0 11-2 0V6.414l-2.293 2.293a1 1 0 01-1.414-1.414L13.586 5H12zm-9 7a1 1 0 112 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 110 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 110-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15.586 13H14a1 1 0 01-1-1z" clip-rule="evenodd"/>
+            </svg>
+            Test Logs
+        </h2>
+        <div class="flex space-x-3">
+            <button type="button" class="btn-outline" onclick="toggleAutoScroll()">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+                <span id="autoScrollText">Auto Scroll: ON</span>
+            </button>
+            <button type="button" class="btn-outline" onclick="clearLogs()">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                    <path fill-rule="evenodd" d="M10 5a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2H10zm0 2h6v6h-6V7z" clip-rule="evenodd"/>
+                </svg>
+                Clear Logs
+            </button>
+            <button type="button" class="btn-outline" onclick="exportLogs()">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"/>
+                </svg>
+                Export Logs
+            </button>
+        </div>
+    </div>
+
+    <!-- Test Selection -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-xl font-semibold text-white">Test Selection</h3>
+        </div>
+        <div class="card-body">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                    <div id="logTestSelection">
+                        <div class="flex items-center justify-center py-12">
+                            <div class="loading-spinner mr-4"></div>
+                            <p class="text-gray-300">Loading active tests...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-cyperf-grey">
+                    <div class="card-header">
+                        <h4 class="text-lg font-semibold text-white">Log Controls</h4>
+                    </div>
+                    <div class="card-body space-y-4">
+                        <div>
+                            <label class="form-label">Log Level Filter</label>
+                            <select class="form-select w-full" id="logLevelFilter" onchange="filterLogs()">
+                                <option value="all">All Levels</option>
+                                <option value="ERROR">Error Only</option>
+                                <option value="WARNING">Warning & Error</option>
+                                <option value="INFO">Info & Above</option>
+                                <option value="DEBUG">Debug & Above</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Search Logs</label>
+                            <input type="text" class="form-input w-full" id="logSearchInput" 
+                                   placeholder="Search log messages..." onkeyup="searchLogs()">
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="liveUpdateCheckbox" checked onchange="toggleLiveUpdates()" 
+                                   class="mr-2 rounded border-gray-600 bg-cyperf-grey text-cyperf-red focus:ring-cyperf-red">
+                            <label for="liveUpdateCheckbox" class="form-label mb-0">Live Updates</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log Display -->
+    <div id="logDisplaySection" class="hidden space-y-6">
+        <!-- Terminal Logs -->
+        <div class="card">
+            <div class="card-header">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-cyperf-red" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3 1h10v1.5a.5.5 0 01-.5.5h-9a.5.5 0 01-.5-.5V6zm0 3h10v1.5a.5.5 0 01-.5.5h-9a.5.5 0 01-.5-.5V9zm0 3h10v1.5a.5.5 0 01-.5.5h-9a.5.5 0 01-.5-.5V12z" clip-rule="evenodd"/>
+                        </svg>
+                        Terminal Logs
+                    </h3>
+                    <div class="flex space-x-2">
+                        <button type="button" class="btn-outline btn-sm" onclick="clearLogs()">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                                <path fill-rule="evenodd" d="M10 5a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2H10zm0 2h6v6h-6V7z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="log-container custom-scrollbar h-[400px]" id="terminalLogContainer">
+                    <div class="flex items-center justify-center h-full">
+                        <div class="text-center">
+                            <svg class="w-12 h-12 mx-auto text-gray-500 mb-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                            </svg>
+                            <p class="text-gray-400">No terminal logs available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Server and Client Logs -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Server Logs -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xl font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                            </svg>
+                            Server Logs
+                        </h3>
+                        <div class="flex space-x-2">
+                            <button type="button" class="btn-outline btn-sm" onclick="refreshServerLogs()">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="btn-outline btn-sm" onclick="downloadServerLogs()">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="log-container custom-scrollbar" id="serverLogContainer">
+                        <div class="flex items-center justify-center h-full">
+                            <div class="text-center">
+                                <svg class="w-12 h-12 mx-auto text-gray-500 mb-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                                </svg>
+                                <p class="text-gray-400">No server logs available</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <p class="text-sm text-gray-400">
+                        <span id="serverLogCount">0</span> log entries | 
+                        Last updated: <span id="serverLogLastUpdate">Never</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Client Logs -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xl font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 11-2 0V4zm9 1a1 1 0 110-2h4a1 1 0 011 1v4a1 1 0 11-2 0V6.414l-2.293 2.293a1 1 0 01-1.414-1.414L13.586 5H12zm-9 7a1 1 0 112 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 110 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 110-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15.586 13H14a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            Client Logs
+                        </h3>
+                        <div class="flex space-x-2">
+                            <button type="button" class="btn-outline btn-sm" onclick="refreshClientLogs()">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="btn-outline btn-sm" onclick="downloadClientLogs()">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="log-container custom-scrollbar" id="clientLogContainer">
+                        <div class="flex items-center justify-center h-full">
+                            <div class="text-center">
+                                <svg class="w-12 h-12 mx-auto text-gray-500 mb-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                                </svg>
+                                <p class="text-gray-400">No client logs available</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <p class="text-sm text-gray-400">
+                        <span id="clientLogCount">0</span> log entries | 
+                        Last updated: <span id="clientLogLastUpdate">Never</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Combined Log View -->
+        <div class="card">
+            <div class="card-header">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+                        </svg>
+                        Combined Log View
+                    </h3>
+                    <div class="flex space-x-2">
+                        <div class="flex bg-gray-800 rounded-lg p-1">
+                            <button type="button" class="px-3 py-1 text-sm font-medium rounded-md transition-colors bg-cyperf-red text-white" 
+                                    onclick="changeLogViewMode('chronological')" id="chronologicalBtn">
+                                Chronological
+                            </button>
+                            <button type="button" class="px-3 py-1 text-sm font-medium rounded-md transition-colors text-gray-300 hover:text-white" 
+                                    onclick="changeLogViewMode('separated')" id="separatedBtn">
+                                Separated
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="log-container custom-scrollbar" id="combinedLogContainer" style="max-height: 500px;">
+                    <div class="flex items-center justify-center h-full">
+                        <div class="text-center">
+                            <svg class="w-12 h-12 mx-auto text-gray-500 mb-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+                            </svg>
+                            <p class="text-gray-400">Select a test to view combined logs</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="flex justify-between items-center">
+                    <p class="text-sm text-gray-400">
+                        <span id="combinedLogCount">0</span> total entries
+                    </p>
+                    <div class="flex space-x-2">
+                        <button type="button" class="btn-outline btn-sm" onclick="scrollToTop()">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/>
+                            </svg>
+                            Top
+                        </button>
+                        <button type="button" class="btn-outline btn-sm" onclick="scrollToBottom()">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                            Bottom
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Container -->
+<div id="alertContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/logs.js') }}"></script>
+{% endblock %}

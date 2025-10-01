@@ -38,6 +38,12 @@
           "description": "Enable CSV statistics output",
           "default": true,
           "optional": true
+        },
+        "bidi": {
+          "type": "boolean",
+          "description": "Enable bidirectional mode",
+          "default": false,
+          "optional": true
         }
       }
     },

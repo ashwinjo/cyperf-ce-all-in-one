@@ -36,7 +36,8 @@ POST /api/start_server
     "cps": "boolean (optional, default: false)",
     "port": "integer (optional, default: 5202)",
     "length": "string (optional, default: '1k')",
-    "csv_stats": "boolean (optional, default: true)"
+    "csv_stats": "boolean (optional, default: true)",
+    "bidi": "boolean (optional, default: false)"
   }
 }
 ```
@@ -63,7 +64,8 @@ curl -X 'POST' \
       "cps": false,
       "port": 5202,
       "length": "1k",
-      "csv_stats": true
+      "csv_stats": true,
+      "bidi": false
     }
   }'
 ```

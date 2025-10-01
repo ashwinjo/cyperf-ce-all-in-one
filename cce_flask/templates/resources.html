@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Resources - Cyperf-CE Test Controller{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-cyperf-red text-3xl font-bold flex items-center">
+            <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+            Resources
+        </h2>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="prose prose-invert max-w-none">
+                <div class="bg-gray-800/50 rounded-lg p-8 backdrop-blur-sm border border-gray-700/50">
+                    <p class="text-gray-300 leading-relaxed mb-8 text-lg">
+                        CyPerf Community Edition (CE) is a free stateful network traffic generator derived from the award-winning commercial network application and security test solution – CyPerf.
+                    </p>
+                    <p class="text-gray-300 leading-relaxed mb-12 text-lg">
+                        CyPerf CE features a flexible and easy to use command line tool designed for testing end to end networks or network devices by generating stateful network traffic unlocking access to key performance metrics – e.g., bandwidth, connection rate, capacity, etc. It supports throughput of up to 10 Gbps and connection rates up to 100K connections per second.
+                    </p>
+                    
+                    <h3 class="text-xl font-semibold text-white mb-6 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-cyperf-red" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"/>
+                        </svg>
+                        Useful Links
+                    </h3>
+                    
+                    <div class="space-y-6">
+                        <a href="https://www.cyperf.com/" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="block p-4 bg-gray-900/50 rounded-lg hover:bg-gray-900/70 transition-colors group">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-blue-400 mr-3 group-hover:text-blue-300 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"/>
+                                </svg>
+                                <div>
+                                    <h4 class="text-blue-400 font-medium group-hover:text-blue-300 transition-colors">CyperfCE Official Website</h4>
+                                    <p class="text-gray-400 text-sm mt-1">Visit the official website for comprehensive documentation and resources</p>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="https://github.com/Keysight/cyperf/tree/main/cyperf-ce" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="block p-4 bg-gray-900/50 rounded-lg hover:bg-gray-900/70 transition-colors group">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-blue-400 mr-3 group-hover:text-blue-300 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/>
+                                </svg>
+                                <div>
+                                    <h4 class="text-blue-400 font-medium group-hover:text-blue-300 transition-colors">CyperfCE Github</h4>
+                                    <p class="text-gray-400 text-sm mt-1">Access the source code, contribute, and stay updated with the latest releases</p>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="http://youtube.com/playlist?list=PLtRQdxmT_473FrbZoFoc8Y4IiPWmksmn7" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="block p-4 bg-gray-900/50 rounded-lg hover:bg-gray-900/70 transition-colors group">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-blue-400 mr-3 group-hover:text-blue-300 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                                </svg>
+                                <div>
+                                    <h4 class="text-blue-400 font-medium group-hover:text-blue-300 transition-colors">Cyperf CE Video Tutorials</h4>
+                                    <p class="text-gray-400 text-sm mt-1">Watch step-by-step tutorials and learn how to use CyPerf CE effectively</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

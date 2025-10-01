@@ -6,6 +6,7 @@ class ServerParams(BaseModel):
     port: Optional[int] = 5202
     length: Optional[str] = "1k"
     csv_stats: Optional[bool] = True
+    bidi: bool = False
 
 class ClientParams(BaseModel):
     cps: Optional[bool] = False
