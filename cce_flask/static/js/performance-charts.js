@@ -363,23 +363,29 @@ function updateCharts({ serverData, clientData, isConnectionTest }) {
 
 // Update throughput charts
 function updateThroughputCharts(serverData, clientData) {
-    const timestamps = serverData.map(stat => {
+    // Use client timestamps for client chart, server timestamps for server chart
+    const clientTimestamps = clientData.map(stat => {
+        const date = new Date(parseInt(stat.Timestamp) * 1000);
+        return date.toLocaleTimeString();
+    });
+    
+    const serverTimestamps = serverData.map(stat => {
         const date = new Date(parseInt(stat.Timestamp) * 1000);
         return date.toLocaleTimeString();
     });
 
-    // Update client chart
+    // Update client chart with client timestamps
     if (clientThroughputChart) {
-        clientThroughputChart.data.labels = timestamps;
+        clientThroughputChart.data.labels = clientTimestamps;
         clientThroughputChart.data.datasets[0].data = clientData.map(stat => 
             (parseInt(stat.Throughput) / 1000000).toFixed(2)
         );
         clientThroughputChart.update();
     }
 
-    // Update server chart
+    // Update server chart with server timestamps
     if (serverThroughputChart) {
-        serverThroughputChart.data.labels = timestamps;
+        serverThroughputChart.data.labels = serverTimestamps;
         serverThroughputChart.data.datasets[0].data = serverData.map(stat => 
             (parseInt(stat.Throughput) / 1000000).toFixed(2)
         );
@@ -389,32 +395,38 @@ function updateThroughputCharts(serverData, clientData) {
 
 // Update CPS charts
 function updateCPSCharts(serverData, clientData) {
-    const timestamps = serverData.map(stat => {
+    // Use client timestamps for client charts, server timestamps for server chart
+    const clientTimestamps = clientData.map(stat => {
+        const date = new Date(parseInt(stat.Timestamp) * 1000);
+        return date.toLocaleTimeString();
+    });
+    
+    const serverTimestamps = serverData.map(stat => {
         const date = new Date(parseInt(stat.Timestamp) * 1000);
         return date.toLocaleTimeString();
     });
 
-    // Update client connections chart
+    // Update client connections chart with client timestamps
     if (clientConnectionsChart) {
-        clientConnectionsChart.data.labels = timestamps;
+        clientConnectionsChart.data.labels = clientTimestamps;
         clientConnectionsChart.data.datasets[0].data = clientData.map(stat => 
             parseInt(stat.ConnectionsSucceeded || 0)
         );
         clientConnectionsChart.update();
     }
 
-    // Update client failures chart
+    // Update client failures chart with client timestamps
     if (clientFailuresChart) {
-        clientFailuresChart.data.labels = timestamps;
+        clientFailuresChart.data.labels = clientTimestamps;
         clientFailuresChart.data.datasets[0].data = clientData.map(stat => 
             parseInt(stat.ConnectionsFailed || 0)
         );
         clientFailuresChart.update();
     }
 
-    // Update server connections chart
+    // Update server connections chart with server timestamps
     if (serverConnectionsChart) {
-        serverConnectionsChart.data.labels = timestamps;
+        serverConnectionsChart.data.labels = serverTimestamps;
         serverConnectionsChart.data.datasets[0].data = serverData.map(stat => 
             parseInt(stat.ConnectionsAccepted || 0)
         );
