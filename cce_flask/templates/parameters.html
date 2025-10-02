@@ -558,8 +558,14 @@
 <!-- Test Results Section -->
 <div id="testResultsSection" class="hidden mt-8">
     <div class="card">
-        <div class="card-header">
+        <div class="card-header flex justify-between items-center">
             <h3 class="text-xl font-semibold text-white">Test Results</h3>
+            <button id="exportPDF" onclick="exportToPDF()" class="px-4 py-2 bg-cyperf-red hover:bg-red-700 text-white rounded-lg flex items-center transition-colors duration-300">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Export PDF Report
+            </button>
         </div>
         <div class="card-body">
             <!-- Test Summary -->
@@ -578,6 +584,37 @@
             <div id="resultStatus" class="text-lg font-semibold text-green-400">Completed</div>
         </div>
     </div>
+    <!-- Performance Metrics -->
+    <div id="performanceMetrics" class="mt-6 p-4 bg-gray-800 rounded-lg">
+        <h4 class="text-lg font-semibold text-white mb-4">Performance Metrics</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Average Throughput -->
+            <div class="bg-gray-700/50 p-4 rounded-lg">
+                <div class="text-sm text-gray-400 mb-2">Average Throughput</div>
+                <div id="avgThroughput" class="text-lg font-semibold">
+                    <div class="text-cyperf-red">Server: -</div>
+                    <div class="text-yellow-500">Client: -</div>
+                </div>
+            </div>
+            <!-- Peak Throughput -->
+            <div class="bg-gray-700/50 p-4 rounded-lg">
+                <div class="text-sm text-gray-400 mb-2">Peak Throughput</div>
+                <div id="peakThroughput" class="text-lg font-semibold">
+                    <div class="text-cyperf-red">Server: -</div>
+                    <div class="text-yellow-500">Client: -</div>
+                </div>
+            </div>
+            <!-- Average Latency -->
+            <div class="bg-gray-700/50 p-4 rounded-lg">
+                <div class="text-sm text-gray-400 mb-2">Average Latency</div>
+                <div id="avgLatency" class="text-lg font-semibold">
+                    <div class="text-cyperf-red">Server: -</div>
+                    <div class="text-yellow-500">Client: -</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Add Log Buttons -->
     <div class="mt-4 flex justify-center space-x-4">
         <button type="button" 
@@ -724,6 +761,9 @@
 {% block scripts %}
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <!-- HTML2PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <!-- Custom Scripts -->
     <script src="{{ url_for('static', filename='js/performance-charts.js') }}"></script>

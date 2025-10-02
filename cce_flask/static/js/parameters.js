@@ -355,6 +355,253 @@ function startTestMonitoring(testId, duration) {
 }
 
 // Display test results in side-by-side format
+// Utility functions for metrics calculations
+function calculateAverage(data, field) {
+    if (!Array.isArray(data) || data.length === 0) return 0;
+    
+    const sum = data.reduce((acc, curr) => {
+        const value = parseFloat(curr[field]) || 0;
+        return acc + value;
+    }, 0);
+    
+    return (sum / data.length).toFixed(2);
+}
+
+function findPeak(data, field) {
+    if (!Array.isArray(data) || data.length === 0) return 0;
+    
+    const peak = Math.max(...data.map(item => parseFloat(item[field]) || 0));
+    return peak.toFixed(2);
+}
+
+async function exportToPDF() {
+    // Get the complete test configuration
+    const formData = new FormData($('#testConfigForm')[0]);
+    const testConfig = Object.fromEntries(formData.entries());
+    
+    // Get the configuration summary
+    const config = {
+        testType: $('#summaryTestType').text(),
+        duration: $('#summaryDuration').text(),
+        endpoints: $('#summaryEndpoints').text(),
+        direction: $('#summaryDirection').text(),
+        bandwidth: $('#summaryBandwidth').text(),
+        cps: $('#summaryCPS').text(),
+        // Detailed configuration
+        serverIP: testConfig.server_ip || '-',
+        serverPort: testConfig.server_port || 'Auto-assigned',
+        clientIP: testConfig.client_ip || '-',
+        clientPort: testConfig.client_port || 'Auto-assigned',
+        testDuration: testConfig.duration || '60',
+        connectionsPerSecond: testConfig.connections_per_second || '-',
+        bandwidthMbps: testConfig.bandwidth || '-',
+        direction: testConfig.direction || 'unidirectional',
+        protocol: testConfig.protocol || 'tcp'
+    };
+
+    // Create the report content
+    const reportContent = document.createElement('div');
+    reportContent.style.padding = '20px';
+    reportContent.innerHTML = `
+        <div style="padding: 20px; font-family: Arial, sans-serif;">
+            <h1 style="color: #DC3545; font-size: 24px; margin-bottom: 20px;">Test Report</h1>
+            
+            <!-- Test Information -->
+            <div style="margin-bottom: 30px;">
+                <h2 style="color: #333; font-size: 18px;">Test Information</h2>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd; width: 30%;">Test ID</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${$('#resultTestId').text()}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;">Duration</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${$('#resultDuration').text()}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;">Status</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${$('#resultStatus').text()}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Test Configuration -->
+            <div style="margin-bottom: 30px;">
+                <h2 style="color: #333; font-size: 18px;">Test Configuration</h2>
+                
+                <!-- Server Configuration -->
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: #666; font-size: 16px; margin-bottom: 10px;">Server Configuration</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd; width: 30%;">IP Address</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${config.serverIP}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Port</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${config.serverPort}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Client Configuration -->
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: #666; font-size: 16px; margin-bottom: 10px;">Client Configuration</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd; width: 30%;">IP Address</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${config.clientIP}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Port</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${config.clientPort}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Test Parameters -->
+                <div>
+                    <h3 style="color: #666; font-size: 16px; margin-bottom: 10px;">Test Parameters</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd; width: 30%;">Test Type</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${config.testType}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Duration</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${config.testDuration} seconds</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Protocol</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${config.protocol.toUpperCase()}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Direction</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${config.direction}</td>
+                        </tr>
+                        ${config.bandwidthMbps !== '-' ? `
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Bandwidth</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${config.bandwidthMbps} Mbps</td>
+                        </tr>
+                        ` : ''}
+                        ${config.connectionsPerSecond !== '-' ? `
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Connections Per Second</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${config.connectionsPerSecond} conn/s</td>
+                        </tr>
+                        ` : ''}
+                    </table>
+                </div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div style="margin-bottom: 30px;">
+                <h2 style="color: #333; font-size: 18px;">Performance Metrics</h2>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 10px;">
+                    <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+                        <div style="color: #666; margin-bottom: 10px;">Average Throughput</div>
+                        ${$('#avgThroughput').html()}
+                    </div>
+                    <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+                        <div style="color: #666; margin-bottom: 10px;">Peak Throughput</div>
+                        ${$('#peakThroughput').html()}
+                    </div>
+                    <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+                        <div style="color: #666; margin-bottom: 10px;">Average Latency</div>
+                        ${$('#avgLatency').html()}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div style="margin-bottom: 30px;">
+                <h2 style="color: #333; font-size: 18px;">Performance Charts</h2>
+                ${document.getElementById('performanceChart').outerHTML}
+                ${document.getElementById('cpsChart')?.outerHTML || ''}
+            </div>
+            
+            <!-- Statistics Tables -->
+            <div style="margin-bottom: 30px;">
+                <h2 style="color: #333; font-size: 18px;">Statistics</h2>
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: #666; font-size: 16px;">Server Statistics</h3>
+                    ${document.getElementById('serverStatsTable').outerHTML}
+                </div>
+                <div>
+                    <h3 style="color: #666; font-size: 16px;">Client Statistics</h3>
+                    ${document.getElementById('clientStatsTable').outerHTML}
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Configure PDF options
+    const opt = {
+        margin: 1,
+        filename: `test-report-${$('#resultTestId').text()}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+            scale: 2,
+            useCORS: true,
+            logging: false
+        },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+
+    try {
+        // Show loading state
+        $('#exportPDF').prop('disabled', true).html(`
+            <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Generating PDF...
+        `);
+
+        // Generate PDF
+        await html2pdf().set(opt).from(reportContent).save();
+
+        // Reset button state
+        $('#exportPDF').prop('disabled', false).html(`
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Export PDF Report
+        `);
+
+        showAlert('PDF report generated successfully!', 'success');
+    } catch (error) {
+        console.error('PDF generation error:', error);
+        showAlert('Failed to generate PDF report. Please try again.', 'error');
+        
+        // Reset button state
+        $('#exportPDF').prop('disabled', false).html(`
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Export PDF Report
+        `);
+    }
+}
+
+function calculateCombinedMetrics(serverData, clientData, field) {
+    const serverMetrics = {
+        avg: parseFloat(calculateAverage(serverData, field)) || 0,
+        peak: parseFloat(findPeak(serverData, field)) || 0
+    };
+    
+    const clientMetrics = {
+        avg: parseFloat(calculateAverage(clientData, field)) || 0,
+        peak: parseFloat(findPeak(clientData, field)) || 0
+    };
+    
+    return {
+        server: serverMetrics,
+        client: clientMetrics
+    };
+}
+
 function displayTestResults(response) {
     // Show the results section
     $('#testResultsSection').removeClass('hidden');
@@ -426,6 +673,58 @@ function displayTestResults(response) {
         // Extract raw API response data - NEW STRUCTURE
         const serverData = response.final_stats?.server_stats?.raw_data || [];
         const clientData = response.final_stats?.client_stats?.raw_data || [];
+
+        // Calculate and display performance metrics
+        if ((Array.isArray(serverData) && serverData.length > 0) || 
+            (Array.isArray(clientData) && clientData.length > 0)) {
+            
+            const testType = $('#testType').val();
+            
+            if (testType === 'throughput') {
+                // Calculate throughput metrics (in Mbps)
+                const throughputMetrics = calculateCombinedMetrics(serverData, clientData, 'Throughput');
+                const latencyMetrics = calculateCombinedMetrics(serverData, clientData, 'Latency');
+                
+                // Update the UI with both server and client metrics
+                $('#avgThroughput').html(`
+                    <div class="text-cyperf-red">Server: ${(throughputMetrics.server.avg / 1000000).toFixed(2)} Mbps</div>
+                    <div class="text-yellow-500">Client: ${(throughputMetrics.client.avg / 1000000).toFixed(2)} Mbps</div>
+                `);
+                
+                $('#peakThroughput').html(`
+                    <div class="text-cyperf-red">Server: ${(throughputMetrics.server.peak / 1000000).toFixed(2)} Mbps</div>
+                    <div class="text-yellow-500">Client: ${(throughputMetrics.client.peak / 1000000).toFixed(2)} Mbps</div>
+                `);
+                
+                $('#avgLatency').html(`
+                    <div class="text-cyperf-red">Server: ${latencyMetrics.server.avg} ms</div>
+                    <div class="text-yellow-500">Client: ${latencyMetrics.client.avg} ms</div>
+                `);
+                
+            } else if (testType === 'cps') {
+                // Calculate CPS metrics
+                const cpsMetrics = calculateCombinedMetrics(serverData, clientData, 'ConnectionRate');
+                const latencyMetrics = calculateCombinedMetrics(serverData, clientData, 'Latency');
+                
+                // Update the UI with both server and client metrics
+                $('#avgThroughput').prev().text('Average CPS');
+                $('#avgThroughput').html(`
+                    <div class="text-cyperf-red">Server: ${cpsMetrics.server.avg} conn/s</div>
+                    <div class="text-yellow-500">Client: ${cpsMetrics.client.avg} conn/s</div>
+                `);
+                
+                $('#peakThroughput').prev().text('Peak CPS');
+                $('#peakThroughput').html(`
+                    <div class="text-cyperf-red">Server: ${cpsMetrics.server.peak} conn/s</div>
+                    <div class="text-yellow-500">Client: ${cpsMetrics.client.peak} conn/s</div>
+                `);
+                
+                $('#avgLatency').html(`
+                    <div class="text-cyperf-red">Server: ${latencyMetrics.server.avg} ms</div>
+                    <div class="text-yellow-500">Client: ${latencyMetrics.client.avg} ms</div>
+                `);
+            }
+        }
         
         // Display raw API response for debugging
         console.log('Server API Response:', serverData);

@@ -27,68 +27,37 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if system is Ubuntu/Debian
-check_debian_based() {
-    if [ ! -f /etc/debian_version ] && [ ! -f /etc/lsb-release ]; then
-        log_error "This script only supports Ubuntu/Debian systems"
-        exit 1
-    fi
-    
-    if [ -f /etc/lsb-release ]; then
-        . /etc/lsb-release
-        log_info "Detected Ubuntu: $DISTRIB_DESCRIPTION"
-    else
-        VERSION=$(cat /etc/debian_version)
-        log_info "Detected Debian version: $VERSION"
-    fi
-}
-
-# Check and install Docker on Ubuntu/Debian
-check_and_install_docker() {
+# Check Docker installation
+check_docker() {
     if ! command -v docker &> /dev/null; then
-        log_warning "Docker is not installed. Installing Docker..."
-        
-        # Install Docker
-        sudo apt-get update
-        sudo apt-get install -y ca-certificates curl gnupg lsb-release
-        sudo mkdir -p /etc/apt/keyrings
-        curl -fsSL https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]') $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        sudo apt-get update
-        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-        
-        # Start and enable Docker service
-        sudo systemctl start docker
-        sudo systemctl enable docker
-        
-        # Add current user to docker group
-        if [ "$EUID" -ne 0 ]; then
-            sudo usermod -aG docker $USER
-            log_warning "You may need to log out and log back in for Docker group changes to take effect"
-        fi
-        
-        log_success "Docker installed successfully"
+        log_error "Docker is not installed. Please install Docker Desktop from https://www.docker.com/products/docker-desktop"
+        log_info "After installing Docker Desktop, restart your terminal and run this script again."
+        exit 1
     else
-        log_success "Docker is already installed: $(docker --version)"
+        log_success "Docker is installed: $(docker --version)"
     fi
     
     # Check Docker Compose
     if ! docker compose version &> /dev/null; then
-        log_warning "Docker Compose plugin not found. It should have been installed with Docker..."
-        log_info "Installing Docker Compose plugin..."
-        sudo apt-get update
-        sudo apt-get install -y docker-compose-plugin
-        log_success "Docker Compose installed: $(docker compose version)"
+        log_error "Docker Compose is not available. Please ensure Docker Desktop is properly installed."
+        exit 1
     else
-        log_success "Docker Compose is already installed: $(docker compose version)"
+        log_success "Docker Compose is installed: $(docker compose version)"
+    fi
+
+    # Check if Docker daemon is running
+    if ! docker info &> /dev/null; then
+        log_error "Docker daemon is not running. Please start Docker Desktop and try again."
+        exit 1
+    else
+        log_success "Docker daemon is running"
     fi
 }
 
 log_info "🚀 Starting Docker Resurrection Script..."
 
-# Check for Ubuntu/Debian and install Docker if needed
-check_debian_based
-check_and_install_docker
+# Check Docker installation and status
+check_docker
 
 # Check if .env file exists
 if [ ! -f .env ]; then
@@ -106,19 +75,45 @@ fi
 # Load environment variables
 source .env
 
-# Validate required environment variables
-required_vars=("SERVER_IP" "CLIENT_IP" "SSH_USERNAME")
-for var in "${required_vars[@]}"; do
-    if [ -z "${!var}" ]; then
-        log_error "Required environment variable $var is not set in .env file"
-        exit 1
-    fi
-done
+# Set default SSH username if not provided
+if [ -z "$SSH_USERNAME" ]; then
+    SSH_USERNAME=$(whoami)
+    log_warning "SSH_USERNAME not set in .env file, using current user: $SSH_USERNAME"
+fi
+
+# Check SSH authentication method
+if [ -z "$SSH_KEY_HOST_PATH" ] && [ -z "$SSH_PASSWORD" ]; then
+    log_error "Either SSH_KEY_HOST_PATH or SSH_PASSWORD must be set in .env file"
+    log_info "Please configure one of the following:"
+    log_info "   - SSH_KEY_HOST_PATH: Path to your SSH private key"
+    log_info "   - SSH_PASSWORD: SSH password for authentication"
+    exit 1
+fi
 
 log_info "🔧 Configuration loaded:"
-log_info "   - Server IP: $SERVER_IP"
-log_info "   - Client IP: $CLIENT_IP"
+if [ ! -z "$SERVER_IP" ]; then
+    log_info "   - Server IP: $SERVER_IP"
+else
+    log_warning "   - Server IP: Not configured (optional)"
+fi
+
+if [ ! -z "$CLIENT_IP" ]; then
+    log_info "   - Client IP: $CLIENT_IP"
+else
+    log_warning "   - Client IP: Not configured (optional)"
+fi
+
 log_info "   - SSH Username: $SSH_USERNAME"
+if [ ! -z "$SSH_KEY_HOST_PATH" ]; then
+    if [ -f "$SSH_KEY_HOST_PATH" ]; then
+        log_info "   - SSH Authentication: Using SSH key at $SSH_KEY_HOST_PATH"
+    else
+        log_error "SSH key file not found at $SSH_KEY_HOST_PATH"
+        exit 1
+    fi
+else
+    log_info "   - SSH Authentication: Using password authentication"
+fi
 
 # Step 1: Stop running containers
 log_info "📦 Step 1: Stopping existing containers..."
