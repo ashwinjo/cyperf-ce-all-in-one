@@ -375,6 +375,12 @@ function findPeak(data, field) {
 }
 
 async function exportToPDF() {
+    const testResultsSection = document.getElementById('testResultsSection');
+    if (!testResultsSection || testResultsSection.classList.contains('hidden')) {
+        showAlert('No test results available to export', 'warning');
+        return;
+    }
+
     // Get the complete test configuration
     const formData = new FormData($('#testConfigForm')[0]);
     const testConfig = Object.fromEntries(formData.entries());
@@ -517,7 +523,7 @@ async function exportToPDF() {
             <!-- Charts -->
             <div style="margin-bottom: 30px;">
                 <h2 style="color: #333; font-size: 18px;">Performance Charts</h2>
-                ${document.getElementById('performanceChart').outerHTML}
+                ${document.getElementById('performanceChart')?.outerHTML || '<p style="color: #666;">No performance chart available</p>'}
                 ${document.getElementById('cpsChart')?.outerHTML || ''}
             </div>
             
@@ -526,19 +532,45 @@ async function exportToPDF() {
                 <h2 style="color: #333; font-size: 18px;">Statistics</h2>
                 <div style="margin-bottom: 20px;">
                     <h3 style="color: #666; font-size: 16px;">Server Statistics</h3>
-                    ${document.getElementById('serverStatsTable').outerHTML}
+                    ${document.getElementById('serverStatsTable')?.outerHTML || '<p style="color: #666;">No server statistics available</p>'}
                 </div>
                 <div>
                     <h3 style="color: #666; font-size: 16px;">Client Statistics</h3>
-                    ${document.getElementById('clientStatsTable').outerHTML}
+                    ${document.getElementById('clientStatsTable')?.outerHTML || '<p style="color: #666;">No client statistics available</p>'}
                 </div>
             </div>
         </div>
     `;
 
+    let performanceChartImg = '';
+    const performanceChart = document.getElementById('performanceChart');
+    if (performanceChart) {
+        try {
+            const canvas = performanceChart.querySelector('canvas');
+            if (canvas) {
+                performanceChartImg = `<img src="${canvas.toDataURL('image/png')}" style="width: 100%; max-width: 800px; height: auto; margin: 10px 0;" />`;
+            }
+        } catch (e) {
+            console.error('Error capturing performance chart:', e);
+        }
+    }
+
+    let cpsChartImg = '';
+    const cpsChart = document.getElementById('cpsChart');
+    if (cpsChart) {
+        try {
+            const canvas = cpsChart.querySelector('canvas');
+            if (canvas) {
+                cpsChartImg = `<img src="${canvas.toDataURL('image/png')}" style="width: 100%; max-width: 800px; height: auto; margin: 10px 0;" />`;
+            }
+        } catch (e) {
+            console.error('Error capturing CPS chart:', e);
+        }
+    }
+
     // Configure PDF options
     const opt = {
-        margin: 1,
+        margin: 10,
         filename: `test-report-${$('#resultTestId').text()}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
@@ -546,7 +578,7 @@ async function exportToPDF() {
             useCORS: true,
             logging: false
         },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     try {
