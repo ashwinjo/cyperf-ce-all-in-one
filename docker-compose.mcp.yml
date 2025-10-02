@@ -15,7 +15,7 @@ services:
       - SSH_KEY_PATH=${SSH_KEY_PATH}
       - SSH_PASSWORD=${SSH_PASSWORD}
     volumes:
-      - ${SSH_KEY_HOST_PATH}:${SSH_KEY_PATH}:ro
+      - ${SSH_KEY_HOST_PATH:-/dev/null}:${SSH_KEY_PATH:-/tmp/dummy_key}:ro
     command: ["fastapi"]
     networks:
       - cyperf-network
@@ -55,7 +55,7 @@ services:
       - SSH_KEY_PATH=${SSH_KEY_PATH}
       - SSH_PASSWORD=${SSH_PASSWORD}
     volumes:
-      - ${SSH_KEY_HOST_PATH}:${SSH_KEY_PATH}:ro
+      - ${SSH_KEY_HOST_PATH:-/dev/null}:${SSH_KEY_PATH:-/tmp/dummy_key}:ro
     command: ["mcp"]
     depends_on:
       - fastapi
@@ -79,7 +79,7 @@ services:
       - SSH_PASSWORD=${SSH_PASSWORD}
       - FASTAPI_BASE_URL=http://fastapi:8000
     volumes:
-      - ${SSH_KEY_HOST_PATH}:${SSH_KEY_PATH}:ro
+      - ${SSH_KEY_HOST_PATH:-/dev/null}:${SSH_KEY_PATH:-/tmp/dummy_key}:ro
     command: ["mcp-sse"]
     depends_on:
       - fastapi
