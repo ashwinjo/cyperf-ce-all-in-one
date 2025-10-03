@@ -44,6 +44,12 @@
           "description": "Enable bidirectional mode",
           "default": false,
           "optional": true
+        },
+        "reverse": {
+          "type": "boolean",
+          "description": "Run in reverse mode - server sends and client receives",
+          "default": false,
+          "optional": true
         }
       }
     },

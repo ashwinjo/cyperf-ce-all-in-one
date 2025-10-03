@@ -29,7 +29,7 @@ class CyperfService:
         return ssh
 
     def start_server(self, test_id: str, server_ip: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        command = f"nohup sudo cyperf -s"
+        command = f"nohup sudo cyperf -s --detailed-stats"
         if params.get("cps"):
             command += " --cps"
         if params.get("port"):
@@ -60,7 +60,7 @@ class CyperfService:
     def start_client(self, test_id: str, server_ip: str, client_ip: str, params: Dict[str, Any]) -> Dict[str, Any]:
         if test_id not in self.active_tests:
             raise Exception("Server not started for this test_id")
-        command = f"nohup sudo cyperf -c {server_ip}"
+        command = f"nohup sudo cyperf -c {server_ip} --detailed-stats"
         # CPS and bitrate are mutually exclusive
         if params.get("cps"):
             # Handle CPS rate limit if provided

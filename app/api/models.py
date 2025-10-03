@@ -7,6 +7,7 @@ class ServerParams(BaseModel):
     length: Optional[str] = "1k"
     csv_stats: Optional[bool] = True
     bidi: bool = False
+    reverse: bool = False
 
 class ClientParams(BaseModel):
     cps: Optional[bool] = False

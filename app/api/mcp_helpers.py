@@ -24,7 +24,8 @@ def _get_mcp_tools() -> List[Dict[str, Any]]:
                     "port": {"type": "integer", "description": "Server port", "default": 5202},
                     "length": {"type": "string", "description": "Packet length (e.g., '1k', '64k')", "default": "1k"},
                     "csv_stats": {"type": "boolean", "description": "Enable CSV statistics output", "default": True},
-                    "bidi": {"type": "boolean", "description": "Enable bidirectional mode", "default": False}
+                    "bidi": {"type": "boolean", "description": "Enable bidirectional mode", "default": False},
+                    "reverse": {"type": "boolean", "description": "Run in reverse mode - server sends and client receives", "default": False}
                 },
                 "required": ["server_ip"]
             }
@@ -167,7 +168,8 @@ async def _mcp_start_server(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
             "port": arguments.get("port", 5202),
             "length": arguments.get("length", "1k"),
             "csv_stats": arguments.get("csv_stats", True),
-            "bidi": arguments.get("bidi", False)
+            "bidi": arguments.get("bidi", False),
+            "reverse": arguments.get("reverse", False)
         }
     }
     
