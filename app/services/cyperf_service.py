@@ -38,6 +38,8 @@ class CyperfService:
             command += f" --length {params['length']}"
         if params.get("bidi"):
             command += " --bidir"
+        if params.get("reverse"):
+            command += " --reverse"
         if params.get("csv_stats"):
             command += " --csv-stats"
         command += f" {test_id}_server.csv > {test_id}_server.log 2>&1 &"

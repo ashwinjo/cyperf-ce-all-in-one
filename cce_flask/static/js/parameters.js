@@ -5,6 +5,7 @@
 $(document).ready(function() {
     updateConfigSummary();
     updateTestSpecificFields();
+    updateTrafficDirectionOptions(); // Show traffic direction dropdown on initial load
     
     // Add event listeners for real-time summary updates
     $('#testConfigForm input, #testConfigForm select').on('input change', function() {
@@ -72,6 +73,19 @@ function updateTestSpecificFields() {
     updateConfigSummary();
 }
 
+function updateTrafficDirectionOptions() {
+    const direction = $('#direction').val();
+    const trafficDirectionContainer = $('#trafficDirectionContainer');
+    
+    if (direction === 'unidirectional') {
+        trafficDirectionContainer.removeClass('hidden');
+    } else {
+        trafficDirectionContainer.addClass('hidden');
+    }
+    
+    updateConfigSummary();
+}
+
 function updateConfigSummary() {
     // Update basic info
     const testType = $('#testType').val();
@@ -79,11 +93,24 @@ function updateConfigSummary() {
     const serverIP = $('#serverIP').val();
     const clientIP = $('#clientIP').val();
     const direction = $('#direction').val();
+    const trafficDirection = $('#trafficDirection').val();
     
     $('#summaryTestType').text(testType === 'throughput' ? 'Throughput' : 'CPS');
     $('#summaryDuration').text(`${duration} seconds`);
-    $('#summaryEndpoints').text(`${serverIP} → ${clientIP}`);
-    $('#summaryDirection').text(direction.charAt(0).toUpperCase() + direction.slice(1));
+    
+    // Update endpoints based on traffic direction
+    if (direction === 'unidirectional' && trafficDirection === 'server_to_client') {
+        $('#summaryEndpoints').text(`${serverIP} → ${clientIP}`);
+    } else {
+        $('#summaryEndpoints').text(`${clientIP} → ${serverIP}`);
+    }
+    
+    // Update direction text
+    let directionText = direction.charAt(0).toUpperCase() + direction.slice(1);
+    if (direction === 'unidirectional') {
+        directionText += ` (${trafficDirection === 'server_to_client' ? 'Server to Client' : 'Client to Server'})`;
+    }
+    $('#summaryDirection').text(directionText);
     
     // Update test-specific summary
     if (testType === 'throughput') {
@@ -194,8 +221,14 @@ function submitTestConfig(event) {
     const formData = new FormData($('#testConfigForm')[0]);
     const config = Object.fromEntries(formData.entries());
     
-    // Set bidi parameter based on direction
+    // Set bidi and reverse parameters based on direction
     config.bidi = config.direction === 'bidirectional';
+    // Set reverse parameter based on traffic direction
+    if (config.direction === 'unidirectional') {
+        config.reverse = $('#trafficDirection').val() === 'server_to_client';
+    } else {
+        config.reverse = false;
+    }
     
     // Show progress modal
     $('#testProgressModal').removeClass('hidden');
@@ -827,69 +860,16 @@ function showClientLogs() {
             const logContent = response.content;
             let formattedContent = '';
 
-            // Extract test configuration
-            const configMatch = logContent.match(/Test Configuration Summary([\s\S]*?)(?=\n\n---)/);
-            if (configMatch) {
+            // Extract test configuration - get everything before the first empty line
+            const sections = logContent.split('\n\n');
+            const configSection = sections[0];
+            if (configSection && configSection.includes('Test Configuration')) {
                 formattedContent += `
                     <div class="mb-6">
                         <h3 class="text-lg font-semibold text-blue-400 mb-2">Test Configuration</h3>
                         <div class="bg-gray-800 rounded-lg p-4">
-                            <table class="w-full">
-                                ${configMatch[1].trim().split('\n').map(line => {
-                                    const [key, value] = line.split(/\s{2,}/);
-                                    if (key && value) {
-                                        return `
-                                            <tr>
-                                                <td class="py-1 pr-4 text-gray-400">${key.trim()}</td>
-                                                <td class="py-1 text-white">${value.trim()}</td>
-                                            </tr>
-                                        `;
-                                    }
-                                    return '';
-                                }).join('')}
-                            </table>
+                            <pre class="text-white font-mono text-sm">${configSection}</pre>
                         </div>
-                    </div>`;
-            }
-
-            // Extract and format stats blocks
-            const statsBlocks = logContent.match(/╭[^╰]*╰[^╮]*╯/g) || [];
-            if (statsBlocks.length > 0) {
-                formattedContent += `
-                    <div class="space-y-6">
-                        ${statsBlocks.map(block => {
-                            // Extract timestamp
-                            const timestampMatch = block.match(/Timestamp: ([^\n]+)/);
-                            const timestamp = timestampMatch ? timestampMatch[1].trim() : 'N/A';
-
-                            // Extract stats
-                            const stats = block.match(/│([^│]+)│([^│]+)│/g) || [];
-                            
-                            return `
-                                <div class="bg-gray-800 rounded-lg overflow-hidden">
-                                    <div class="bg-gray-700 px-4 py-2">
-                                        <span class="text-blue-400">Timestamp:</span>
-                                        <span class="text-white ml-2">${timestamp}</span>
-                                    </div>
-                                    <div class="p-4">
-                                        <table class="w-full">
-                                            ${stats.map(stat => {
-                                                const [key, value] = stat.split('│').slice(1, 3).map(s => s.trim());
-                                                if (key && key !== 'Basic Stats' && value) {
-                                                    return `
-                                                        <tr>
-                                                            <td class="py-1 pr-4 text-gray-400">${key}</td>
-                                                            <td class="py-1 text-green-400 font-mono">${value}</td>
-                                                        </tr>
-                                                    `;
-                                                }
-                                                return '';
-                                            }).join('')}
-                                        </table>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
                     </div>`;
             }
 
@@ -954,69 +934,16 @@ function showServerLogs() {
             const logContent = response.content;
             let formattedContent = '';
 
-            // Extract test configuration
-            const configMatch = logContent.match(/Test Configuration Summary([\s\S]*?)(?=\n\n---)/);
-            if (configMatch) {
+            // Extract test configuration - get everything before the first empty line
+            const sections = logContent.split('\n\n');
+            const configSection = sections[0];
+            if (configSection && configSection.includes('Test Configuration')) {
                 formattedContent += `
                     <div class="mb-6">
                         <h3 class="text-lg font-semibold text-blue-400 mb-2">Test Configuration</h3>
                         <div class="bg-gray-800 rounded-lg p-4">
-                            <table class="w-full">
-                                ${configMatch[1].trim().split('\n').map(line => {
-                                    const [key, value] = line.split(/\s{2,}/);
-                                    if (key && value) {
-                                        return `
-                                            <tr>
-                                                <td class="py-1 pr-4 text-gray-400">${key.trim()}</td>
-                                                <td class="py-1 text-white">${value.trim()}</td>
-                                            </tr>
-                                        `;
-                                    }
-                                    return '';
-                                }).join('')}
-                            </table>
+                            <pre class="text-white font-mono text-sm">${configSection}</pre>
                         </div>
-                    </div>`;
-            }
-
-            // Extract and format stats blocks
-            const statsBlocks = logContent.match(/╭[^╰]*╰[^╮]*╯/g) || [];
-            if (statsBlocks.length > 0) {
-                formattedContent += `
-                    <div class="space-y-6">
-                        ${statsBlocks.map(block => {
-                            // Extract timestamp
-                            const timestampMatch = block.match(/Timestamp: ([^\n]+)/);
-                            const timestamp = timestampMatch ? timestampMatch[1].trim() : 'N/A';
-
-                            // Extract stats
-                            const stats = block.match(/│([^│]+)│([^│]+)│/g) || [];
-                            
-                            return `
-                                <div class="bg-gray-800 rounded-lg overflow-hidden">
-                                    <div class="bg-gray-700 px-4 py-2">
-                                        <span class="text-blue-400">Timestamp:</span>
-                                        <span class="text-white ml-2">${timestamp}</span>
-                                    </div>
-                                    <div class="p-4">
-                                        <table class="w-full">
-                                            ${stats.map(stat => {
-                                                const [key, value] = stat.split('│').slice(1, 3).map(s => s.trim());
-                                                if (key && key !== 'Basic Stats' && value) {
-                                                    return `
-                                                        <tr>
-                                                            <td class="py-1 pr-4 text-gray-400">${key}</td>
-                                                            <td class="py-1 text-green-400 font-mono">${value}</td>
-                                                        </tr>
-                                                    `;
-                                                }
-                                                return '';
-                                            }).join('')}
-                                        </table>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
                     </div>`;
             }
 
@@ -1117,65 +1044,58 @@ function viewDetailedStats() {
 
 // Simple progress countdown for test execution
 function startSimpleProgress(duration) {
-    let elapsed = 0;
-    let phase = 'starting'; // starting, running, finishing
+    const startTime = Date.now();
+    const endTime = startTime + (duration * 1000);
     
     // Update initial status
-    $('#testStatusText').text('Starting server...');
-    updateProgressBar(0, 'Starting...');
-    $('#testTimeRemaining').text(`Test will run for ${duration} seconds`);
+    updateProgressBar(0);
+    $('#testTimeRemaining').text(`Time remaining: ${formatDuration(duration)}`);
     
     const progressInterval = setInterval(() => {
-        elapsed += 1;
+        const currentTime = Date.now();
+        const elapsedTime = currentTime - startTime;
+        const totalTime = duration * 1000;
         
-        // Simulate phases
-        if (elapsed <= 3) {
-            phase = 'starting';
-            $('#testStatusText').text('Starting server and client...');
-            const startProgress = Math.min((elapsed / 3) * 10, 10); // 0-10% for starting
-            updateProgressBar(startProgress, 'Starting...');
-        } else if (elapsed > 3 && elapsed <= duration + 3) {
-            phase = 'running';
-            const testElapsed = elapsed - 3;
-            const testProgress = 10 + Math.min((testElapsed / duration) * 80, 80); // 10-90% for running
-            const remaining = Math.max(0, duration - testElapsed);
-            
-            $('#testStatusText').text('Running test...');
-            updateProgressBar(testProgress, `${Math.round(testProgress)}%`);
-            $('#testTimeRemaining').text(`Time remaining: ${formatDuration(remaining)}`);
-        } else {
-            phase = 'finishing';
-            $('#testStatusText').text('Collecting final statistics...');
-            updateProgressBar(95, 'Finishing...');
-            $('#testTimeRemaining').text('Finishing...');
+        // Calculate progress percentage
+        const progress = Math.min((elapsedTime / totalTime) * 100, 100);
+        
+        // Calculate remaining time in seconds
+        const remaining = Math.max(0, Math.ceil((endTime - currentTime) / 1000));
+        
+        updateProgressBar(progress);
+        $('#testTimeRemaining').text(`Time remaining: ${formatDuration(remaining)}`);
+        
+        if (currentTime >= endTime) {
+            clearInterval(progressInterval);
         }
-        
-        // Clear interval when AJAX completes (handled in success/error callbacks)
-    }, 1000);
+    }, 100); // Update more frequently for smoother animation
     
     // Store interval ID for cleanup
     window.currentProgressInterval = progressInterval;
 }
 
 // Update progress bar with animation
-function updateProgressBar(percentage, text) {
+function updateProgressBar(percentage) {
     const progressBar = $('#testProgressBar');
+    const progressText = $('#progressText');
     
     // Animate the width change
     progressBar.animate({
         width: percentage + '%'
     }, 300, 'swing');
     
-    // Update text
-    progressBar.text(text);
+    // Update percentage text
+    progressText.text(Math.round(percentage) + '%');
     
-    // Add visual effects based on progress
-    if (percentage < 30) {
-        progressBar.removeClass('bg-yellow-500 bg-green-500').addClass('bg-cyperf-red');
-    } else if (percentage < 80) {
-        progressBar.removeClass('bg-cyperf-red bg-green-500').addClass('bg-yellow-500');
+    // Change color based on progress
+    if (percentage <= 25) {
+        progressBar.removeClass('bg-orange-500 bg-blue-500 bg-green-500').addClass('bg-yellow-500');
+    } else if (percentage <= 50) {
+        progressBar.removeClass('bg-yellow-500 bg-blue-500 bg-green-500').addClass('bg-orange-500');
+    } else if (percentage <= 75) {
+        progressBar.removeClass('bg-yellow-500 bg-orange-500 bg-green-500').addClass('bg-blue-500');
     } else {
-        progressBar.removeClass('bg-cyperf-red bg-yellow-500').addClass('bg-green-500');
+        progressBar.removeClass('bg-yellow-500 bg-orange-500 bg-blue-500').addClass('bg-green-500');
     }
 }
 
@@ -1440,7 +1360,7 @@ function checkBackendStatus() {
                 // Backend is healthy
                 indicator.removeClass('bg-red-500 bg-yellow-500 animate-pulse')
                          .addClass('bg-green-500')
-                         .css('background-color', '#10B981 !important'); // Force green color
+                         .css('background-color', '#22C55E !important'); // Brighter green color
                 statusText.text('Connected').removeClass('text-red-400 text-yellow-400').addClass('text-green-400');
                 backendUrl.text(response.flask_config?.api_base_url || 'Unknown URL');
                 console.log('✅ Backend is healthy and connected');
