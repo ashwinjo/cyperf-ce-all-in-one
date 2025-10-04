@@ -65,6 +65,104 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    
+    <!-- n8n Chat Widget -->
+    <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+    
+    <!-- Custom Chat Widget Styling -->
+    <style>
+        /* Custom styling for n8n chat widget */
+        .n8n-chat-widget {
+            width: 600px !important; /* Much wider chat window */
+            max-width: 90vw !important;
+            min-width: 500px !important;
+        }
+        
+        /* Target container for chat widget */
+        #n8n-chat {
+            width: 600px !important;
+            max-width: 90vw !important;
+        }
+        
+        .n8n-chat-widget .chat-window {
+            background-color: #000000 !important;
+            border: 2px solid #DC3545 !important;
+            border-radius: 8px !important;
+        }
+        
+        .n8n-chat-widget .chat-header {
+            background-color: #1a1a1a !important;
+            color: #ffffff !important;
+            border-bottom: 1px solid #DC3545 !important;
+        }
+        
+        .n8n-chat-widget .chat-messages {
+            background-color: #000000 !important;
+        }
+        
+        .n8n-chat-widget .message {
+            background-color: #1a1a1a !important;
+            color: #ffffff !important;
+        }
+        
+        .n8n-chat-widget .message.user {
+            background-color: #DC3545 !important;
+            color: #ffffff !important;
+        }
+        
+        .n8n-chat-widget .chat-input {
+            background-color: #1a1a1a !important;
+            border: 1px solid #DC3545 !important;
+            color: #ffffff !important;
+        }
+        
+        .n8n-chat-widget .chat-input::placeholder {
+            color: #888888 !important;
+        }
+        
+        /* Chat button styling */
+        .n8n-chat-widget .chat-button {
+            background-color: #DC3545 !important;
+            border: none !important;
+        }
+        
+        /* Ensure proper z-index */
+        .n8n-chat-widget {
+            z-index: 10000 !important;
+        }
+        
+        /* Additional width controls for chat components */
+        .n8n-chat-widget .chat-container,
+        .n8n-chat-widget .chat-window,
+        .n8n-chat-widget .chat-messages,
+        .n8n-chat-widget .chat-input-container {
+            width: 600px !important;
+            max-width: 90vw !important;
+        }
+        
+        /* Make chat messages wider */
+        .n8n-chat-widget .message {
+            max-width: 85% !important;
+        }
+        
+        /* Custom welcome message override */
+        .n8n-chat-widget .chat-welcome-message {
+            display: none !important;
+        }
+        
+        .n8n-chat-widget .chat-messages::before {
+            content: "Welcome to Cyperf CE Network Test Controller! 🚀\A\A I'm your AI assistant for network performance testing. How can I help you today?";
+            white-space: pre-line;
+            display: block;
+            padding: 16px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #DC3545;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body class="bg-cyperf-dark text-white min-h-screen">
     <!-- Navigation Header -->
@@ -204,7 +302,100 @@
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     
+    <!-- n8n Chat Widget -->
+    <script type="module">
+        try {
+            import('https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js').then(({ createChat }) => {
+                // Only initialize if we have a valid webhook URL
+                const webhookUrl = 'http://localhost:5678/webhook/97fca5e9-6f41-4f35-8f7f-7160faebd1cf/chat';
+                
+                if (webhookUrl && webhookUrl !== 'YOUR_PRODUCTION_WEBHOOK_URL') {
+                    createChat({
+                        webhookUrl: webhookUrl,
+                        webhookConfig: {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        },
+                        target: '#n8n-chat',
+                        mode: 'window',
+                        chatInputKey: 'chatInput',
+                        chatSessionKey: 'sessionId',
+                        loadPreviousSession: true,
+                        metadata: {
+                            source: 'cyperf-ce-controller',
+                            version: '1.0.0'
+                        },
+                        showWelcomeScreen: false,
+                        defaultLanguage: 'en',
+                        initialMessages: [
+                            'Welcome to Cyperf CE Network Test Controller! 🚀\n\nI\'m your AI assistant for network performance testing. I can help you with starting and configuring network tests, monitoring performance statistics, analyzing test results, and debugging network issues.\n\nWhat would you like to test today?'
+                        ],
+                        i18n: {
+                            en: {
+                                title: 'Cyperf CE Assistant',
+                                subtitle: 'Network Performance Testing Made Easy',
+                                footer: 'Powered by Keysight Cyperf CE',
+                                getStarted: 'Start New Test',
+                                inputPlaceholder: 'Ask about network testing, performance metrics, or configuration...',
+                            },
+                        },
+                        enableStreaming: true
+                    });
+                    console.log('n8n Chat widget initialized successfully with custom styling');
+                } else {
+                    console.warn('n8n Chat widget not initialized: Please configure a valid webhook URL');
+                    // Create a placeholder chat button for testing
+                    createPlaceholderChat();
+                }
+            }).catch(error => {
+                console.error('Failed to load n8n chat widget:', error);
+                createPlaceholderChat();
+            });
+        } catch (error) {
+            console.error('Error initializing chat widget:', error);
+            createPlaceholderChat();
+        }
+
+        function createPlaceholderChat() {
+            // Create a simple placeholder chat button
+            const chatButton = document.createElement('div');
+            chatButton.innerHTML = `
+                <div id="chat-widget-placeholder" style="
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    width: 60px;
+                    height: 60px;
+                    background: #DC3545;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                    z-index: 1000;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+                        <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                    </svg>
+                </div>
+            `;
+            document.body.appendChild(chatButton);
+            
+            // Add click handler
+            chatButton.addEventListener('click', function() {
+                alert('Chat widget placeholder clicked!\n\nTo enable full chat functionality:\n1. Set up your n8n webhook URL\n2. Replace "YOUR_PRODUCTION_WEBHOOK_URL" in the code\n3. Reload the page');
+            });
+        }
+    </script>
+    
     <!-- Page-specific JS -->
     {% block scripts %}{% endblock %}
+    
+    <!-- Chat Widget Target Container -->
+    <div id="n8n-chat"></div>
 </body>
 </html>
