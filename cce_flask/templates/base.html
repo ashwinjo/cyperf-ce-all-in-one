@@ -101,16 +101,17 @@
             --chat--header--color: var(--chat--color-white);
             --chat--header--border-top: none;
             --chat--header--border-bottom: 2px solid var(--chat--color-primary);
-            --chat--heading--font-size: 1.5em;
+            --chat--heading--font-size: 2em;
             --chat--subtitle--font-size: 1em;
             --chat--subtitle--line-height: 1.5;
 
             --chat--textarea--height: 50px;
 
-            --chat--message--font-size: 1rem;
+            --chat--message--font-size: 1.125rem;  /* Increased from 1rem to 1.125rem (18px) */
             --chat--message--padding: var(--chat--spacing);
             --chat--message--border-radius: var(--chat--border-radius);
             --chat--message-line-height: 1.8;
+            --chat--input--font-size: 1.125rem;  /* Added to match message font size */
             --chat--message--bot--background: var(--chat--color-light);
             --chat--message--bot--color: var(--chat--color-white);
             --chat--message--bot--border: 1px solid var(--chat--color-primary);
@@ -200,9 +201,21 @@
             min-width: 400px !important;
         }
         
-        /* Make chat messages wider */
+        /* Make chat messages wider and ensure font size */
         .n8n-chat-widget .message {
             max-width: 90% !important;
+            font-size: 1.125rem !important;
+        }
+        
+        /* Ensure input field has larger font */
+        .n8n-chat-widget .chat-input textarea {
+            font-size: 1.125rem !important;
+        }
+        
+        /* Ensure code blocks in messages have good size */
+        .n8n-chat-widget .message pre,
+        .n8n-chat-widget .message code {
+            font-size: 1rem !important;
         }
         
         /* Custom welcome message override */
