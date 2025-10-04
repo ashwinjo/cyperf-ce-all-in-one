@@ -71,17 +71,75 @@
     
     <!-- Custom Chat Widget Styling -->
     <style>
+        /* CSS Custom Properties for Black, White, Red Theme */
+        :root {
+            --chat--color-primary: #DC3545; /* Cyperf Red */
+            --chat--color-primary-shade-50: #c82333;
+            --chat--color-primary-shade-100: #bd2130;
+            --chat--color-secondary: #DC3545; /* Red for consistency */
+            --chat--color-secondary-shade-50: #c82333;
+            --chat--color-white: #ffffff;
+            --chat--color-light: #1a1a1a; /* Dark gray for light elements */
+            --chat--color-light-shade-50: #2d2d2d;
+            --chat--color-light-shade-100: #404040;
+            --chat--color-medium: #6c757d;
+            --chat--color-dark: #000000; /* Pure black */
+            --chat--color-disabled: #6c757d;
+            --chat--color-typing: #404040;
+
+            --chat--spacing: 1rem;
+            --chat--border-radius: 0.5rem;
+            --chat--transition-duration: 0.15s;
+
+            /* Almost half the screen size */
+            --chat--window--width: 48vw;
+            --chat--window--height: 80vh;
+
+            --chat--header-height: auto;
+            --chat--header--padding: var(--chat--spacing);
+            --chat--header--background: var(--chat--color-dark);
+            --chat--header--color: var(--chat--color-white);
+            --chat--header--border-top: none;
+            --chat--header--border-bottom: 2px solid var(--chat--color-primary);
+            --chat--heading--font-size: 1.5em;
+            --chat--subtitle--font-size: 1em;
+            --chat--subtitle--line-height: 1.5;
+
+            --chat--textarea--height: 50px;
+
+            --chat--message--font-size: 1rem;
+            --chat--message--padding: var(--chat--spacing);
+            --chat--message--border-radius: var(--chat--border-radius);
+            --chat--message-line-height: 1.8;
+            --chat--message--bot--background: var(--chat--color-light);
+            --chat--message--bot--color: var(--chat--color-white);
+            --chat--message--bot--border: 1px solid var(--chat--color-primary);
+            --chat--message--user--background: var(--chat--color-primary);
+            --chat--message--user--color: var(--chat--color-white);
+            --chat--message--user--border: none;
+            --chat--message--pre--background: rgba(220, 53, 69, 0.1);
+
+            --chat--toggle--background: var(--chat--color-primary);
+            --chat--toggle--hover--background: var(--chat--color-primary-shade-50);
+            --chat--toggle--active--background: var(--chat--color-primary-shade-100);
+            --chat--toggle--color: var(--chat--color-white);
+            --chat--toggle--size: 64px;
+        }
+
         /* Custom styling for n8n chat widget */
         .n8n-chat-widget {
-            width: 600px !important; /* Much wider chat window */
+            width: 48vw !important; /* Almost half screen width */
+            height: 80vh !important; /* Almost half screen height */
             max-width: 90vw !important;
-            min-width: 500px !important;
+            min-width: 400px !important;
         }
         
         /* Target container for chat widget */
         #n8n-chat {
-            width: 600px !important;
+            width: 48vw !important;
+            height: 80vh !important;
             max-width: 90vw !important;
+            min-width: 400px !important;
         }
         
         .n8n-chat-widget .chat-window {
@@ -136,13 +194,15 @@
         .n8n-chat-widget .chat-window,
         .n8n-chat-widget .chat-messages,
         .n8n-chat-widget .chat-input-container {
-            width: 600px !important;
+            width: 48vw !important;
+            height: 80vh !important;
             max-width: 90vw !important;
+            min-width: 400px !important;
         }
         
         /* Make chat messages wider */
         .n8n-chat-widget .message {
-            max-width: 85% !important;
+            max-width: 90% !important;
         }
         
         /* Custom welcome message override */
