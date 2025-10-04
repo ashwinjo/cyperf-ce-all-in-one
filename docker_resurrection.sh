@@ -56,7 +56,7 @@ fi
 
 # Step 2: Stop running containers
 echo "📦 Step 2: Stopping existing containers..."
-if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml down; then
+if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml down; then
     echo "✅ Containers stopped successfully."
 else
     echo "❌ Failed to stop containers. Exiting."
@@ -65,7 +65,7 @@ fi
 
 # Step 3: Rebuild images with latest changes
 echo "🔨 Step 3: Rebuilding Docker images..."
-if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml build; then
+if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml build --pull; then
     echo "✅ Images rebuilt successfully."
 else
     echo "❌ Failed to rebuild images. Exiting."
@@ -74,7 +74,7 @@ fi
 
 # Step 4: Start containers with new images
 echo "🚀 Step 4: Starting containers with new images..."
-if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml up -d; then
+if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml up -d; then
     echo "✅ Containers started successfully in detached mode."
 else
     echo "❌ Failed to start containers. Exiting."
@@ -87,7 +87,7 @@ sleep 15
 
 # Step 6: Verify container status
 echo "🔍 Step 6: Verifying container status..."
-if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml ps; then
+if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml ps; then
     echo "✅ Container status verified."
 else
     echo "❌ Failed to verify container status."
@@ -125,20 +125,70 @@ else
     echo "   ⚠️  MCP SSE Server is not responding (may still be starting up)"
 fi
 
-# Check n8n Server and copy workflow
+# Check n8n Server and import workflow
 echo "   Checking n8n service..."
 if curl -f -s http://localhost:5678 >/dev/null 2>&1; then
     echo "   ✅ n8n service is healthy"
-    # Wait a bit more for n8n to fully initialize
-    sleep 5
-    echo "   📄 Copying workflow file to n8n..."
-    if docker cp CCE_Chat.json n8n:/home/node/.n8n/workflows/CCE_Chat.json; then
-        echo "   ✅ Workflow file copied successfully"
-        # Set proper permissions inside container
-        docker exec n8n chown node:node /home/node/.n8n/workflows/CCE_Chat.json
+    sleep 8  # Wait a bit more for n8n to fully initialize
+
+    # Check if workflow file exists in the container
+    if docker exec -i n8n test -f /home/node/.n8n/workflows/CCE_Chat.json; then
+        echo "   📄 Found workflow file in container"
     else
-        echo "   ⚠️  Failed to copy workflow file"
+        echo "   ⚠️  Workflow file not found in container, copying from host..."
+        # Copy the workflow file into the container
+        docker cp CCE_Chat.json n8n:/home/node/.n8n/workflows/
     fi
+
+    echo "   📥 Importing workflow 'CCE_Chat.json'..."
+    
+    docker exec -i n8n sh -c "n8n import:workflow --input=/home/node/.n8n/workflows/CCE_Chat.json --no-color"
+    echo "   ✅ Workflow import attempt completed."
+
+    # Add a small delay after import
+    sleep 5
+
+    echo "   🔄 Listing workflows to get ID..."
+    WORKFLOW_ID=$(docker exec -i n8n sh -c "n8n list:workflow --no-color" | grep -w 'CCE_Chat' | cut -d'|' -f3 | awk '{print $1}')
+
+    if [ -n "$WORKFLOW_ID" ]; then
+        echo "   ✅ Found workflow ID: $WORKFLOW_ID"
+        echo "   🚀 Activating workflow..."
+        
+        # Stop n8n, update workflow, and restart
+        echo "   🛑 Stopping n8n..."
+        docker stop n8n >/dev/null 2>&1
+        sleep 5
+
+        echo "   📋 Executing command: n8n update:workflow --active=true --id=$WORKFLOW_ID --no-color"
+        docker start n8n >/dev/null 2>&1
+        sleep 3
+        docker exec -i n8n sh -c "n8n update:workflow --active=true --id=$WORKFLOW_ID --no-color"
+        
+        echo "   🔄 Starting n8n..."
+        docker start n8n >/dev/null 2>&1
+        sleep 10  # Give n8n time to fully start
+        
+        # # Verify activation status
+        # echo "   🔍 Verifying workflow activation..."
+        # ACTIVE_STATUS=$(docker exec -i n8n sh -c "n8n list:workflow --no-color" | grep -w 'CCE_Chat' | grep -i 'active')
+        # if [ -n "$ACTIVE_STATUS" ]; then
+        #     echo "   ✅ Workflow 'CCE_Chat' activated successfully."
+        # else
+        #     echo "   ⚠️  Workflow may not be active. Please check n8n dashboard."
+        # fi
+    else
+        echo "   ❌ Workflow 'CCE_Chat' not found after import. Check your JSON or container logs."
+        # Display available workflows for debugging
+        echo "   📋 Available workflows:"
+        docker exec -i n8n sh -c "n8n list:workflow --no-color"
+    fi
+
+    echo "   🔄 Restarting n8n to ensure full refresh..."
+    docker restart n8n >/dev/null 2>&1
+    sleep 10  # Give more time for restart
+    echo "   ✅ n8n restarted successfully"
+
 else
     echo "   ⚠️  n8n service is not responding (may still be starting up)"
 fi
@@ -156,7 +206,7 @@ echo "   - API documentation: http://localhost:8000/docs"
 echo "   - Health check: http://localhost:8000/health"
 echo ""
 echo "📡 MCP SSE Server: http://localhost:8001"
-echo "   - SSE endpoint: http://localhost:8001/sse"
+echo "   - SSE endpoint: http://localhost:8001/mcp"
 echo "   - Test page: http://localhost:8001/test"
 echo "   - Health check: http://localhost:8001/health"
 echo ""
@@ -166,13 +216,18 @@ echo "   - Username: user"
 echo "   - Password: password"
 echo "   - Workflow imported: CCE_Chat.json"
 echo ""
+echo "🧠 Ollama Server: http://localhost:11434"
+echo "   - Model: gemma:3b"
+echo "   - Status: Running in background"
+echo "   - API endpoint: http://localhost:11434/api/generate"
+echo ""
 echo "🔌 MCP Server: Available via stdio for MCP clients"
 echo "-------------------"
 echo ""
 echo "🔧 Management Commands:"
-echo "   - View logs: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml logs -f"
-echo "   - View specific service logs: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml logs -f [service-name]"
-echo "   - Stop all: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml down"
-echo "   - Restart specific service: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml restart [service-name]"
-echo "   - Check status: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml ps"
+echo "   - View logs: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml logs -f"
+echo "   - View specific service logs: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml logs -f [service-name]"
+echo "   - Stop all: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml down"
+echo "   - Restart specific service: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml restart [service-name]"
+echo "   - Check status: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml ps"
 echo ""
