@@ -7,7 +7,12 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Global Configuration -->
     <script>
+        // API Configuration
+        window.CYPERF_API_BASE_URL = "{{ config.CYPERF_API_BASE_URL }}";
+        
+        // Tailwind Configuration
         tailwind.config = {
             theme: {
                 extend: {

@@ -849,7 +849,7 @@ function showClientLogs() {
 
     // Fetch client logs
     $.ajax({
-        url: `http://localhost:8000/api/client/logs/${testId}`,
+        url: `${window.CYPERF_API_BASE_URL}/client/logs/${testId}`,
         method: 'GET',
         headers: {
             'accept': 'application/json'
@@ -923,7 +923,7 @@ function showServerLogs() {
 
     // Fetch server logs
     $.ajax({
-        url: `http://localhost:8000/api/server/logs/${testId}`,
+        url: `${window.CYPERF_API_BASE_URL}/server/logs/${testId}`,
         method: 'GET',
         headers: {
             'accept': 'application/json'
