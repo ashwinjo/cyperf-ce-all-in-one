@@ -385,7 +385,7 @@
         try {
             import('https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js').then(({ createChat }) => {
                 // Only initialize if we have a valid webhook URL
-                const webhookUrl = 'http://localhost:5678/webhook/97fca5e9-6f41-4f35-8f7f-7160faebd1cf/chat';
+                const webhookUrl = 'http://ec2-18-218-229-182.us-east-2.compute.amazonaws.com:5678/webhook/97fca5e9-6f41-4f35-8f7f-7160faebd1cf/chat';
                 
                 if (webhookUrl && webhookUrl !== 'YOUR_PRODUCTION_WEBHOOK_URL') {
                     createChat({
