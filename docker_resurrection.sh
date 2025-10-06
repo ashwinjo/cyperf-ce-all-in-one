@@ -27,7 +27,7 @@ if [ -z "${SSH_PASSWORD}" ]; then
 fi
 
 # Validate required environment variables
-required_vars=("SERVER_IP" "CLIENT_IP" "SSH_USERNAME")
+required_vars=("SERVER_IP" "CLIENT_IP" "SSH_USERNAME" "FASTAPI_HOST")
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
         echo "❌ Required environment variable $var is not set in .env file"
@@ -39,6 +39,7 @@ echo "🔧 Configuration loaded:"
 echo "   - Server IP: $SERVER_IP"
 echo "   - Client IP: $CLIENT_IP"
 echo "   - SSH Username: $SSH_USERNAME"
+echo "   - FastAPI Host: $FASTAPI_HOST"
 
 # Step 0: Check and install docker-compose if needed
 echo "🔍 Checking for docker-compose..."

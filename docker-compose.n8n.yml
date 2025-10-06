@@ -10,12 +10,12 @@ services:
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=user
       - N8N_BASIC_AUTH_PASSWORD=password
-      - N8N_HOST=ec2-18-218-229-182.us-east-2.compute.amazonaws.com
+      - N8N_HOST=${FASTAPI_HOST:-localhost}
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
       - NODE_ENV=development  # Changed to development for local setup
-      - N8N_EDITOR_BASE_URL=http://ec2-18-218-229-182.us-east-2.compute.amazonaws.com:5678
-      - N8N_WEBHOOK_URL=http://ec2-18-218-229-182.us-east-2.compute.amazonaws.com:5678
+      - N8N_EDITOR_BASE_URL=http://${FASTAPI_HOST:-localhost}:5678
+      - N8N_WEBHOOK_URL=http://${FASTAPI_HOST:-localhost}:5678
       # Preserve webhook IDs across restarts
       - N8N_PERSIST_WEBHOOK_PATHS=true
       # Use SQLite for data persistence
