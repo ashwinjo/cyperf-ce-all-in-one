@@ -19,9 +19,9 @@ sudo apt-get install -y -qq --no-install-recommends \
     python3 python3-pip python3-venv libcap2-bin iproute2 ethtool tshark \
     ca-certificates curl gpg software-properties-common
 
-# Upgrade pip and install Python packages
-pip3 install --upgrade pip
-pip3 install --no-cache-dir scapy numpy pandas requests PyYAML
+# Upgrade pip and install Python packages with --break-system-packages
+pip3 install --upgrade pip --break-system-packages
+pip3 install --no-cache-dir scapy numpy pandas requests PyYAML --break-system-packages
 
 echo "====== Installing Cyperf =========="
 # Add CyPerf repo and install

@@ -25,6 +25,44 @@ error_exit() {
     exit 1
 }
 
+# Environment setup from docker_resurrection.sh
+setup_environment() {
+    log "Setting up environment..."
+    
+    # Check if .env file exists
+    if [ ! -f .env ]; then
+        warn ".env file not found. Checking for template..."
+        if [ -f .env.example ]; then
+            cp .env.example .env
+            warn "Created .env from template. Please edit .env file with your configuration before running again."
+            exit 1
+        else
+            error_exit ".env.example file not found. Please create .env file manually."
+        fi
+    fi
+
+    # Load environment variables
+    . .env
+
+    # Set default SSH_PASSWORD if not set
+    if [ -z "${SSH_PASSWORD}" ]; then
+        export SSH_PASSWORD=""
+    fi
+
+    # Validate required environment variables
+    required_vars=("SERVER_IP" "CLIENT_IP" "SSH_USERNAME")
+    for var in "${required_vars[@]}"; do
+        if [ -z "${!var}" ]; then
+            error_exit "Required environment variable $var is not set in .env file"
+        fi
+    done
+
+    log "Configuration loaded:"
+    log "   - Server IP: $SERVER_IP"
+    log "   - Client IP: $CLIENT_IP"
+    log "   - SSH Username: $SSH_USERNAME"
+}
+
 check_prerequisites() {
     log "Checking system prerequisites..."
     
@@ -50,7 +88,7 @@ check_prerequisites() {
     fi
 
     # Check for required system tools
-    for tool in wget gpg; do
+    for tool in wget gpg docker-compose; do
         if ! command -v $tool &> /dev/null; then
             log "Installing $tool..."
             if command -v apt &> /dev/null; then
@@ -79,6 +117,56 @@ detect_os() {
         echo "fedora"
     else
         echo "unknown"
+    fi
+}
+
+setup_docker_network() {
+    log "Setting up Docker network..."
+    if ! docker network inspect cyperf-network >/dev/null 2>&1; then
+        log "Creating cyperf-network..."
+        if docker network create cyperf-network; then
+            success "Network created successfully"
+        else
+            error_exit "Failed to create network"
+        fi
+    else
+        success "Network already exists"
+    fi
+}
+
+verify_services() {
+    log "Verifying services..."
+    
+    # Check FastAPI
+    log "Checking FastAPI service..."
+    if curl -f -s http://localhost:8000/health >/dev/null 2>&1; then
+        success "FastAPI service is healthy"
+    else
+        warn "FastAPI service is not responding (may still be starting up)"
+    fi
+
+    # Check Flask Frontend
+    log "Checking Flask Frontend service..."
+    if curl -f -s http://localhost:5000/health >/dev/null 2>&1; then
+        success "Flask Frontend is healthy"
+    else
+        warn "Flask Frontend is not responding (may still be starting up)"
+    fi
+
+    # Check MCP SSE Server
+    log "Checking MCP SSE Server..."
+    if curl -f -s http://localhost:8001/health >/dev/null 2>&1; then
+        success "MCP SSE Server is healthy"
+    else
+        warn "MCP SSE Server is not responding (may still be starting up)"
+    fi
+
+    # Check n8n Server
+    log "Checking n8n service..."
+    if curl -f -s http://localhost:5678 >/dev/null 2>&1; then
+        success "n8n service is healthy"
+    else
+        warn "n8n service is not responding (may still be starting up)"
     fi
 }
 
@@ -192,8 +280,43 @@ setup_docker_permissions() {
     fi
 }
 
+print_service_info() {
+    echo ""
+    success "Available Services:"
+    echo "-------------------"
+    echo "🌐 Flask Frontend: http://localhost:5000"
+    echo "   - Web UI for CyPerf CE testing"
+    echo ""
+    echo "🔧 FastAPI REST API: http://localhost:8000"
+    echo "   - API documentation: http://localhost:8000/docs"
+    echo "   - Health check: http://localhost:8000/health"
+    echo ""
+    echo "📡 MCP SSE Server: http://localhost:8001"
+    echo "   - SSE endpoint: http://localhost:8001/mcp"
+    echo "   - Test page: http://localhost:8001/test"
+    echo "   - Health check: http://localhost:8001/health"
+    echo ""
+    echo "🤖 n8n Server: http://localhost:5678"
+    echo "   - Login credentials:"
+    echo "   - Username: user"
+    echo "   - Password: password"
+    echo ""
+    echo "🔌 MCP Server: Available via stdio for MCP clients"
+    echo "-------------------"
+    echo ""
+    echo "🔧 Management Commands:"
+    echo "   - View logs: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml logs -f"
+    echo "   - View specific service logs: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml logs -f [service-name]"
+    echo "   - Stop all: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml down"
+    echo "   - Restart specific service: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml restart [service-name]"
+    echo "   - Check status: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml ps"
+}
+
 # Main installation process
 log "Starting Docker installation script..."
+
+# Setup environment
+setup_environment
 
 # Detect OS
 OS_TYPE=$(detect_os)
@@ -227,7 +350,28 @@ verify_docker_installation
 # Setup permissions
 setup_docker_permissions
 
-success "Docker and Docker Compose have been successfully installed!"
+# Setup Docker network
+setup_docker_network
+
+# Start services
+log "Starting services..."
+if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml up -d; then
+    success "Services started successfully"
+else
+    error_exit "Failed to start services"
+fi
+
+# Wait for services to be ready
+log "Waiting for services to initialize..."
+sleep 15
+
+# Verify services
+verify_services
+
+# Print service information
+print_service_info
+
+success "Docker and all services have been successfully installed!"
 log "Docker version: $(docker --version)"
 log "Docker Compose version: $(docker compose version)"
 
