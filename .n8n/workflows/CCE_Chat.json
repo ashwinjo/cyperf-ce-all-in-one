@@ -39,7 +39,7 @@
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
-          "id": "pljEc9e3NR3lq1lB",
+          "id": "IxBSKwsCpRkLCM0W",
           "name": "OpenAi account"
         }
       }
@@ -61,7 +61,7 @@
     },
     {
       "parameters": {
-        "endpointUrl": "http://host.docker.internal:8001/mcp",
+        "endpointUrl": "http://mcp-sse-server:8001/mcp",
         "serverTransport": "httpStreamable",
         "options": {}
       },
@@ -73,6 +73,19 @@
       ],
       "id": "5f16e19d-41f1-49da-9b55-3e35e417f9e6",
       "name": "cyperf-ce-controller"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        96
+      ],
+      "id": "f906e3ee-d98d-41a8-a5cb-71610ac968f4",
+      "name": "Simple Memory"
     }
   ],
   "pinData": {},
@@ -109,16 +122,27 @@
           }
         ]
       ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Cyperf CE Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "84bdb3f3-8226-44c8-9cda-3e4be3e599fc",
+  "versionId": "e7fdac18-bd73-4bb5-b331-6c8ddbffb55c",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "93edf8ee2933fc53bfd3262eb09bc1332fcb667aa89cb7f9f6c65667ea74e434"
+    "instanceId": "9c3a79f78df5153aa8dca4776798bc0c7adc64f3c944eebbd3821958c5ac340c"
   },
   "id": "24tc3hCszWMyt97U",
   "tags": []
