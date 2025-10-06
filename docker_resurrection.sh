@@ -40,6 +40,24 @@ echo "   - Server IP: $SERVER_IP"
 echo "   - Client IP: $CLIENT_IP"
 echo "   - SSH Username: $SSH_USERNAME"
 
+# Step 0: Check and install docker-compose if needed
+echo "🔍 Checking for docker-compose..."
+if ! command -v docker-compose &> /dev/null; then
+    echo "   ⚠️  docker-compose not found. Installing..."
+    if command -v apt &> /dev/null; then
+        sudo apt update
+        sudo apt install -y docker-compose
+    elif command -v yum &> /dev/null; then
+        sudo yum install -y docker-compose
+    else
+        echo "   ❌ Could not install docker-compose. Please install it manually."
+        exit 1
+    fi
+    echo "   ✅ docker-compose installed successfully"
+else
+    echo "   ✅ docker-compose is already installed"
+fi
+
 # Step 1: Create Docker network if it doesn't exist
 echo "🌐 Step 1: Setting up Docker network..."
 if ! docker network inspect cyperf-network >/dev/null 2>&1; then
@@ -56,7 +74,7 @@ fi
 
 # Step 2: Stop running containers
 echo "📦 Step 2: Stopping existing containers..."
-if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml down; then
+if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml down; then
     echo "✅ Containers stopped successfully."
 else
     echo "❌ Failed to stop containers. Exiting."
@@ -65,7 +83,7 @@ fi
 
 # Step 3: Rebuild images with latest changes
 echo "🔨 Step 3: Rebuilding Docker images..."
-if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml build --pull; then
+if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml build --pull; then
     echo "✅ Images rebuilt successfully."
 else
     echo "❌ Failed to rebuild images. Exiting."
@@ -74,7 +92,7 @@ fi
 
 # Step 4: Start containers with new images
 echo "🚀 Step 4: Starting containers with new images..."
-if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml up -d; then
+if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml up -d; then
     echo "✅ Containers started successfully in detached mode."
 else
     echo "❌ Failed to start containers. Exiting."
@@ -87,7 +105,7 @@ sleep 15
 
 # Step 6: Verify container status
 echo "🔍 Step 6: Verifying container status..."
-if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml ps; then
+if docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml ps; then
     echo "✅ Container status verified."
 else
     echo "❌ Failed to verify container status."
@@ -216,18 +234,13 @@ echo "   - Username: user"
 echo "   - Password: password"
 echo "   - Workflow imported: CCE_Chat.json"
 echo ""
-echo "🧠 Ollama Server: http://localhost:11434"
-echo "   - Model: gemma:3b"
-echo "   - Status: Running in background"
-echo "   - API endpoint: http://localhost:11434/api/generate"
-echo ""
 echo "🔌 MCP Server: Available via stdio for MCP clients"
 echo "-------------------"
 echo ""
 echo "🔧 Management Commands:"
-echo "   - View logs: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml logs -f"
-echo "   - View specific service logs: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml logs -f [service-name]"
-echo "   - Stop all: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml down"
-echo "   - Restart specific service: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml restart [service-name]"
-echo "   - Check status: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml -f docker-compose.ollama.yml ps"
+echo "   - View logs: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml logs -f"
+echo "   - View specific service logs: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml logs -f [service-name]"
+echo "   - Stop all: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml down"
+echo "   - Restart specific service: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml restart [service-name]"
+echo "   - Check status: docker-compose -f docker-compose.mcp.yml -f docker-compose.n8n.yml ps"
 echo ""
