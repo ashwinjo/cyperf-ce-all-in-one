@@ -847,9 +847,9 @@ function showClientLogs() {
     $('#clientLogsModal').removeClass('hidden');
     $('#clientLogsContent').text('Loading logs...');
 
-    // Fetch client logs
+    // Fetch client logs through proxy
     $.ajax({
-        url: `${window.CYPERF_API_BASE_URL}/client/logs/${testId}`,
+        url: `/api/proxy/client/logs/${testId}`,
         method: 'GET',
         headers: {
             'accept': 'application/json'
@@ -921,9 +921,9 @@ function showServerLogs() {
     $('#serverLogsModal').removeClass('hidden');
     $('#serverLogsContent').text('Loading logs...');
 
-    // Fetch server logs
+    // Fetch server logs through proxy
     $.ajax({
-        url: `${window.CYPERF_API_BASE_URL}/server/logs/${testId}`,
+        url: `/api/proxy/server/logs/${testId}`,
         method: 'GET',
         headers: {
             'accept': 'application/json'

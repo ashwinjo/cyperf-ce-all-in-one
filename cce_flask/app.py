@@ -203,6 +203,32 @@ def get_test_logs(log_type, test_id):
 @app.route('/api/cancel_test/<test_id>', methods=['POST'])
 def cancel_test(test_id):
     """API endpoint to cancel a running test"""
+
+@app.route('/api/proxy/client/logs/<test_id>')
+def proxy_client_logs(test_id):
+    """Proxy endpoint for client logs"""
+    try:
+        api_client = get_api_client()
+        result = api_client.get_client_logs(test_id)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Failed to fetch client logs: {str(e)}"
+        }), 500
+
+@app.route('/api/proxy/server/logs/<test_id>')
+def proxy_server_logs(test_id):
+    """Proxy endpoint for server logs"""
+    try:
+        api_client = get_api_client()
+        result = api_client.get_server_logs(test_id)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Failed to fetch server logs: {str(e)}"
+        }), 500
     try:
         test_manager = get_test_manager()
         result = test_manager.cancel_test(test_id)
