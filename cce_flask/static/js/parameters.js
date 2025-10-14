@@ -495,72 +495,54 @@ function updateServerStats(stats) {
     // Update server stats table
     const serverStatsTable = $('#serverStatsTable');
     if (serverStatsTable.length) {
-        let html = '<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-700">';
-        
         // If array, show each timestamp as a row
         if (Array.isArray(stats) && stats.length > 0) {
             // Get all keys from the first entry (excluding Timestamp)
             const keys = Object.keys(stats[0]).filter(k => k !== 'Timestamp');
             
-            // Build header row with metric names
-            html += '<thead><tr>';
-            html += '<th class="px-4 py-2 text-center text-sm font-semibold text-white bg-gray-800">#</th>';
-            html += '<th class="px-4 py-2 text-left text-sm font-semibold text-white bg-gray-800">Timestamp</th>';
+            let html = '<table class="min-w-full divide-y divide-gray-700 border-collapse">';
+            
+            // Build header row with metric names - sticky header
+            html += '<thead class="sticky top-0 z-10"><tr>';
+            html += '<th class="px-3 py-2 text-center text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 sticky left-0 z-20">#</th>';
+            html += '<th class="px-3 py-2 text-left text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 sticky left-12 z-20">Timestamp</th>';
             keys.forEach(key => {
-                html += `<th class="px-4 py-2 text-right text-sm font-semibold text-white bg-gray-800 whitespace-nowrap">${key}</th>`;
+                html += `<th class="px-3 py-2 text-right text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 whitespace-nowrap">${key}</th>`;
             });
             html += '</tr></thead><tbody>';
             
             // Add a row for each timestamp
             stats.forEach((entry, idx) => {
                 const time = new Date(parseInt(entry.Timestamp) * 1000).toLocaleTimeString();
-                html += '<tr class="transition-colors hover:bg-gray-700">';
-                html += `<td class="px-4 py-2 text-sm text-center text-gray-400">${idx + 1}</td>`;
-                html += `<td class="px-4 py-2 text-sm text-left text-blue-400 whitespace-nowrap">${time}</td>`;
+                html += '<tr class="transition-colors hover:bg-gray-700 border-b border-gray-800">';
+                html += `<td class="px-3 py-2 text-xs text-center text-gray-400 bg-gray-900 sticky left-0 z-10">${idx + 1}</td>`;
+                html += `<td class="px-3 py-2 text-xs text-left text-blue-400 whitespace-nowrap bg-gray-900 sticky left-12 z-10">${time}</td>`;
                 
                 keys.forEach(key => {
                     const value = parseFloat(entry[key]) || 0;
-                    const unit = key.includes('Throughput') ? 'bps' : 
+                    const unit = key.includes('Throughput') || key.includes('Bytes') ? 'bps' : 
                                 key.includes('Latency') ? 'μs' :
-                                key.includes('Rate') ? '/s' :
-                                key.includes('Bytes') ? 'B' :
-                                key.includes('Packets') ? '' : '';
-                    const formattedValue = formatNumber(value, unit);
+                                key.includes('Rate') ? '/s' : '';
+                    const formattedValue = unit ? formatNumber(value, unit) : value.toFixed(0);
                     
                     // Apply color coding based on metric type
                     let colorClass = 'text-white';
-                    if (key.includes('Throughput')) colorClass = 'text-green-400';
-                    else if (key.includes('Failed') || key.includes('Error') || key.includes('Dropped')) colorClass = 'text-red-400';
-                    else if (key.includes('Succeeded') || key.includes('Accepted')) colorClass = 'text-blue-400';
-                    else if (key.includes('Rate')) colorClass = 'text-yellow-400';
+                    if (key.includes('Throughput') || key.includes('TCPData')) colorClass = 'text-green-400';
+                    else if (key.includes('Failed') || key.includes('Error') || key.includes('Dropped') || key.includes('RST')) colorClass = 'text-red-500';
+                    else if (key.includes('Succeeded') || key.includes('Accepted') || key.includes('ACK')) colorClass = 'text-blue-400';
+                    else if (key.includes('Rate') || key.includes('Active') || key.includes('Parallel')) colorClass = 'text-yellow-400';
                     
-                    html += `<td class="px-4 py-2 text-sm text-right ${colorClass} whitespace-nowrap">${formattedValue}</td>`;
+                    html += `<td class="px-3 py-2 text-xs text-right ${colorClass} whitespace-nowrap">${formattedValue}</td>`;
                 });
                 html += '</tr>';
             });
-        } else {
-            // Single object format (fallback)
-            html += '<thead><tr>';
-            html += '<th class="px-4 py-2 text-left text-sm font-semibold text-white">Metric</th>';
-            html += '<th class="px-4 py-2 text-right text-sm font-semibold text-white">Value</th>';
-            html += '</tr></thead><tbody>';
             
-            Object.entries(stats).forEach(([key, value]) => {
-                if (key === 'Timestamp') return;
-                html += '<tr class="transition-colors hover:bg-gray-700">';
-                html += `<td class="px-4 py-2 text-sm text-gray-300">${key}</td>`;
-                const numValue = parseFloat(value) || 0;
-                const unit = key.includes('Throughput') ? 'bps' : 
-                            key.includes('Latency') ? 'μs' :
-                            key.includes('Rate') ? '/s' :
-                            key.includes('Bytes') ? 'B' :
-                            key.includes('Packets') ? '' : '';
-                html += `<td class="px-4 py-2 text-sm text-right text-white">${formatNumber(numValue, unit)}</td>`;
-                html += '</tr>';
-            });
+            html += '</tbody></table>';
+        } else {
+            // Fallback for empty or invalid data
+            html = '<p class="text-gray-400 p-4 text-center">No server statistics available</p>';
         }
         
-        html += '</tbody></table></div>';
         serverStatsTable.html(html);
     }
 }
@@ -609,73 +591,55 @@ function updateClientStats(stats) {
     // Update client stats table
     const clientStatsTable = $('#clientStatsTable');
     if (clientStatsTable.length) {
-        let html = '<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-700">';
-        
         // If array, show each timestamp as a row
         if (Array.isArray(stats) && stats.length > 0) {
             // Get all keys from the first entry (excluding Timestamp)
             const keys = Object.keys(stats[0]).filter(k => k !== 'Timestamp');
             
-            // Build header row with metric names
-            html += '<thead><tr>';
-            html += '<th class="px-4 py-2 text-center text-sm font-semibold text-white bg-gray-800">#</th>';
-            html += '<th class="px-4 py-2 text-left text-sm font-semibold text-white bg-gray-800">Timestamp</th>';
+            let html = '<table class="min-w-full divide-y divide-gray-700 border-collapse">';
+            
+            // Build header row with metric names - sticky header
+            html += '<thead class="sticky top-0 z-10"><tr>';
+            html += '<th class="px-3 py-2 text-center text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 sticky left-0 z-20">#</th>';
+            html += '<th class="px-3 py-2 text-left text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 sticky left-12 z-20">Timestamp</th>';
             keys.forEach(key => {
-                html += `<th class="px-4 py-2 text-right text-sm font-semibold text-white bg-gray-800 whitespace-nowrap">${key}</th>`;
+                html += `<th class="px-3 py-2 text-right text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 whitespace-nowrap">${key}</th>`;
             });
             html += '</tr></thead><tbody>';
             
             // Add a row for each timestamp
             stats.forEach((entry, idx) => {
                 const time = new Date(parseInt(entry.Timestamp) * 1000).toLocaleTimeString();
-                html += '<tr class="transition-colors hover:bg-gray-700">';
-                html += `<td class="px-4 py-2 text-sm text-center text-gray-400">${idx + 1}</td>`;
-                html += `<td class="px-4 py-2 text-sm text-left text-blue-400 whitespace-nowrap">${time}</td>`;
+                html += '<tr class="transition-colors hover:bg-gray-700 border-b border-gray-800">';
+                html += `<td class="px-3 py-2 text-xs text-center text-gray-400 bg-gray-900 sticky left-0 z-10">${idx + 1}</td>`;
+                html += `<td class="px-3 py-2 text-xs text-left text-blue-400 whitespace-nowrap bg-gray-900 sticky left-12 z-10">${time}</td>`;
                 
                 keys.forEach(key => {
                     const value = parseFloat(entry[key]) || 0;
-                    const unit = key.includes('Throughput') ? 'bps' : 
+                    const unit = key.includes('Throughput') || key.includes('Bytes') ? 'bps' : 
                                 key.includes('Latency') ? 'μs' :
-                                key.includes('Rate') ? '/s' :
-                                key.includes('Bytes') ? 'B' :
-                                key.includes('Packets') ? '' : '';
-                    const formattedValue = formatNumber(value, unit);
+                                key.includes('Rate') ? '/s' : '';
+                    const formattedValue = unit ? formatNumber(value, unit) : value.toFixed(0);
                     
                     // Apply color coding based on metric type
                     let colorClass = 'text-white';
-                    if (key.includes('Throughput')) colorClass = 'text-green-400';
-                    else if (key.includes('Failed') || key.includes('Error') || key.includes('Dropped')) colorClass = 'text-red-400';
-                    else if (key.includes('Succeeded') || key.includes('Accepted')) colorClass = 'text-blue-400';
-                    else if (key.includes('Rate')) colorClass = 'text-yellow-400';
+                    if (key.includes('Throughput') || key.includes('TCPData')) colorClass = 'text-green-400';
+                    else if (key.includes('Failed') || key.includes('Error') || key.includes('Dropped') || key.includes('RST')) colorClass = 'text-red-500';
+                    else if (key.includes('Succeeded') || key.includes('Accepted') || key.includes('ACK')) colorClass = 'text-blue-400';
+                    else if (key.includes('Rate') || key.includes('Active') || key.includes('Parallel')) colorClass = 'text-yellow-400';
                     else if (key.includes('Latency')) colorClass = 'text-yellow-400';
                     
-                    html += `<td class="px-4 py-2 text-sm text-right ${colorClass} whitespace-nowrap">${formattedValue}</td>`;
+                    html += `<td class="px-3 py-2 text-xs text-right ${colorClass} whitespace-nowrap">${formattedValue}</td>`;
                 });
                 html += '</tr>';
             });
-        } else {
-            // Single object format (fallback)
-            html += '<thead><tr>';
-            html += '<th class="px-4 py-2 text-left text-sm font-semibold text-white">Metric</th>';
-            html += '<th class="px-4 py-2 text-right text-sm font-semibold text-white">Value</th>';
-            html += '</tr></thead><tbody>';
             
-            Object.entries(stats).forEach(([key, value]) => {
-                if (key === 'Timestamp') return;
-                html += '<tr class="transition-colors hover:bg-gray-700">';
-                html += `<td class="px-4 py-2 text-sm text-gray-300">${key}</td>`;
-                const numValue = parseFloat(value) || 0;
-                const unit = key.includes('Throughput') ? 'bps' : 
-                            key.includes('Latency') ? 'μs' :
-                            key.includes('Rate') ? '/s' :
-                            key.includes('Bytes') ? 'B' :
-                            key.includes('Packets') ? '' : '';
-                html += `<td class="px-4 py-2 text-sm text-right text-white">${formatNumber(numValue, unit)}</td>`;
-                html += '</tr>';
-            });
+            html += '</tbody></table>';
+        } else {
+            // Fallback for empty or invalid data
+            html = '<p class="text-gray-400 p-4 text-center">No client statistics available</p>';
         }
         
-        html += '</tbody></table></div>';
         clientStatsTable.html(html);
     }
 }
