@@ -519,8 +519,16 @@ class APITrace {
     }
 }
 
-// Initialize API trace
-const apiTrace = new APITrace();
+// Initialize API trace when DOM is ready
+let apiTrace;
 
-// Make it globally available
-window.apiTrace = apiTrace;
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        apiTrace = new APITrace();
+        window.apiTrace = apiTrace;
+    });
+} else {
+    // DOM is already loaded
+    apiTrace = new APITrace();
+    window.apiTrace = apiTrace;
+}
