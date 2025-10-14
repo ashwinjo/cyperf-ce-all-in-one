@@ -433,6 +433,110 @@ function submitTestConfig(event) {
     });
 }
 
+// Function to format numbers with units
+function formatNumber(num, unit) {
+    if (num >= 1000000000) {
+        return (num / 1000000000).toFixed(2) + ' G' + unit;
+    } else if (num >= 1000000) {
+        return (num / 1000000).toFixed(2) + ' M' + unit;
+    } else if (num >= 1000) {
+        return (num / 1000).toFixed(2) + ' K' + unit;
+    }
+    return num.toFixed(2) + ' ' + unit;
+}
+
+// Function to update server statistics in the UI
+function updateServerStats(stats) {
+    if (!stats) return;
+
+    // Update server throughput
+    if (stats.throughput) {
+        $('#avgThroughput .text-cyperf-red').text('Server: ' + formatNumber(stats.throughput.avg, 'bps'));
+        $('#peakThroughput .text-cyperf-red').text('Server: ' + formatNumber(stats.throughput.peak, 'bps'));
+    }
+
+    // Update server latency
+    if (stats.latency) {
+        $('#avgLatency .text-cyperf-red').text('Server: ' + formatNumber(stats.latency.avg, 'ms'));
+    }
+
+    // Update server stats table
+    const serverStatsTable = $('#serverStatsTable');
+    if (serverStatsTable.length) {
+        let html = '<table class="min-w-full divide-y divide-gray-700">';
+        html += '<thead><tr>';
+        html += '<th class="px-4 py-2 text-left text-sm font-semibold text-white">Metric</th>';
+        html += '<th class="px-4 py-2 text-right text-sm font-semibold text-white">Value</th>';
+        html += '</tr></thead><tbody>';
+        
+        // Add all available stats
+        Object.entries(stats).forEach(([key, value]) => {
+            if (typeof value === 'object') {
+                Object.entries(value).forEach(([subKey, subValue]) => {
+                    html += '<tr class="transition-colors hover:bg-gray-700">';
+                    html += `<td class="px-4 py-2 text-sm text-gray-300">${key} ${subKey}</td>`;
+                    html += `<td class="px-4 py-2 text-sm text-right text-white">${formatNumber(subValue, key === 'throughput' ? 'bps' : 'ms')}</td>`;
+                    html += '</tr>';
+                });
+            } else {
+                html += '<tr class="transition-colors hover:bg-gray-700">';
+                html += `<td class="px-4 py-2 text-sm text-gray-300">${key}</td>`;
+                html += `<td class="px-4 py-2 text-sm text-right text-white">${value}</td>`;
+                html += '</tr>';
+            }
+        });
+        
+        html += '</tbody></table>';
+        serverStatsTable.html(html);
+    }
+}
+
+// Function to update client statistics in the UI
+function updateClientStats(stats) {
+    if (!stats) return;
+
+    // Update client throughput
+    if (stats.throughput) {
+        $('#avgThroughput .text-yellow-500').text('Client: ' + formatNumber(stats.throughput.avg, 'bps'));
+        $('#peakThroughput .text-yellow-500').text('Client: ' + formatNumber(stats.throughput.peak, 'bps'));
+    }
+
+    // Update client latency
+    if (stats.latency) {
+        $('#avgLatency .text-yellow-500').text('Client: ' + formatNumber(stats.latency.avg, 'ms'));
+    }
+
+    // Update client stats table
+    const clientStatsTable = $('#clientStatsTable');
+    if (clientStatsTable.length) {
+        let html = '<table class="min-w-full divide-y divide-gray-700">';
+        html += '<thead><tr>';
+        html += '<th class="px-4 py-2 text-left text-sm font-semibold text-white">Metric</th>';
+        html += '<th class="px-4 py-2 text-right text-sm font-semibold text-white">Value</th>';
+        html += '</tr></thead><tbody>';
+        
+        // Add all available stats
+        Object.entries(stats).forEach(([key, value]) => {
+            if (typeof value === 'object') {
+                Object.entries(value).forEach(([subKey, subValue]) => {
+                    html += '<tr class="transition-colors hover:bg-gray-700">';
+                    html += `<td class="px-4 py-2 text-sm text-gray-300">${key} ${subKey}</td>`;
+                    html += `<td class="px-4 py-2 text-sm text-right text-white">${formatNumber(subValue, key === 'throughput' ? 'bps' : 'ms')}</td>`;
+                    html += '</tr>';
+                });
+            } else {
+                html += '<tr class="transition-colors hover:bg-gray-700">';
+                html += `<td class="px-4 py-2 text-sm text-gray-300">${key}</td>`;
+                html += `<td class="px-4 py-2 text-sm text-right text-white">${value}</td>`;
+                html += '</tr>';
+            }
+        });
+        
+        html += '</tbody></table>';
+        clientStatsTable.html(html);
+    }
+}
+
 // Function to update test progress
 function updateTestProgress(testId) {
     let progress = 0;
@@ -444,7 +548,9 @@ function updateTestProgress(testId) {
         progress = Math.min((elapsed / duration) * 100, 100);
         
         // Update progress bar
-        $('#testProgressBar').css('width', progress + '%');
+        $('#testProgressBar').css('width', progress + '%')
+            .removeClass('bg-red-500 bg-yellow-500')
+            .addClass(progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-yellow-500' : 'bg-green-500');
         $('#progressText').text(Math.round(progress) + '%');
         
         // Update time remaining
@@ -456,7 +562,6 @@ function updateTestProgress(testId) {
             url: window.baseUrl + '/api/server/stats/' + testId,
             method: 'GET',
             success: function(serverStats) {
-                // Update server stats if available
                 if (serverStats) {
                     updateServerStats(serverStats);
                 }
@@ -467,7 +572,6 @@ function updateTestProgress(testId) {
             url: window.baseUrl + '/api/client/stats/' + testId,
             method: 'GET',
             success: function(clientStats) {
-                // Update client stats if available
                 if (clientStats) {
                     updateClientStats(clientStats);
                 }
@@ -485,33 +589,29 @@ function updateTestProgress(testId) {
                 $.ajax({
                     url: window.baseUrl + '/api/server/stats/' + testId,
                     method: 'GET',
-                    success: function(finalServerStats) {
-                        updateServerStats(finalServerStats);
-                    }
+                    success: updateServerStats
                 });
                 
                 $.ajax({
                     url: window.baseUrl + '/api/client/stats/' + testId,
                     method: 'GET',
-                    success: function(finalClientStats) {
-                        updateClientStats(finalClientStats);
-                    }
+                    success: updateClientStats
                 });
                 
                 // Get logs
                 $.ajax({
                     url: window.baseUrl + '/api/server/logs/' + testId,
                     method: 'GET',
-                    success: function(serverLogs) {
-                        $('#serverLogsContent').text(serverLogs.content);
+                    success: function(response) {
+                        $('#serverLogsContent').text(response.content || 'No logs available');
                     }
                 });
                 
                 $.ajax({
                     url: window.baseUrl + '/api/client/logs/' + testId,
                     method: 'GET',
-                    success: function(clientLogs) {
-                        $('#clientLogsContent').text(clientLogs.content);
+                    success: function(response) {
+                        $('#clientLogsContent').text(response.content || 'No logs available');
                     }
                 });
             }, 1000);
