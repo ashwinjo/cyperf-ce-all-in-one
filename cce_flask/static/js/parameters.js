@@ -37,17 +37,38 @@ $(document).ready(function() {
     // Add event listener for preset selection
     $('input[name="testPreset"]').on('change', function() {
         const selectedPreset = $(this).val();
+        
+        // Save IP and bind values before any changes
+        const savedValues = {
+            clientIP: $('#clientIP').val(),
+            clientBind: $('#clientBind').val(),
+            serverIP: $('#serverIP').val(),
+            serverBind: $('#serverBind').val()
+        };
+
         if (selectedPreset === 'custom') {
             $('#customConfigSection').slideDown(300);
-            // Reset form values but keep the radio button selection
+            
+            // Reset form to defaults while preserving IPs and radio selection
             const form = $('#testConfigForm')[0];
-            const radioValue = $('input[name="testPreset"]:checked').val();
             form.reset();
-            $('input[name="testPreset"][value="' + radioValue + '"]').prop('checked', true);
+            
+            // Restore the custom radio selection
+            $('#custom').prop('checked', true);
+            
+            // Restore saved IP values
+            $('#clientIP').val(savedValues.clientIP);
+            $('#clientBind').val(savedValues.clientBind);
+            $('#serverIP').val(savedValues.serverIP);
+            $('#serverBind').val(savedValues.serverBind);
+
+            // Disable validation for cps_packet_size
+            $('#cpsPacketSize').prop('required', false);
         } else {
             $('#customConfigSection').slideUp(300);
             applyPresetConfiguration(selectedPreset);
         }
+        
         updateTestSpecificFields();  // Update visibility of parameter sections
         updateConfigSummary();
     });
@@ -75,6 +96,14 @@ function applyPresetConfiguration(preset) {
     const config = TEST_PRESETS[preset];
     if (!config) return;
 
+    // Save current IP and bind values
+    const savedValues = {
+        clientIP: $('#clientIP').val(),
+        clientBind: $('#clientBind').val(),
+        serverIP: $('#serverIP').val(),
+        serverBind: $('#serverBind').val()
+    };
+
     // Apply the configuration to form fields
     $('#testType').val(config.test_type);
     $('#testDuration').val(config.duration);
@@ -91,9 +120,16 @@ function applyPresetConfiguration(preset) {
         $('#cpsPacketSize').val(config.packet_size);
     }
 
+    // Restore saved IP and bind values
+    $('#clientIP').val(savedValues.clientIP);
+    $('#clientBind').val(savedValues.clientBind);
+    $('#serverIP').val(savedValues.serverIP);
+    $('#serverBind').val(savedValues.serverBind);
+
     // Disable validation on all custom fields when using presets
     $('#customConfigSection input, #customConfigSection select').prop('required', false);
     $('#throughputParams input, #cpsParams input').prop('required', false);
+    $('#cpsPacketSize').prop('required', false); // Explicitly disable validation for cps_packet_size
 
     // Update form visibility based on test type
     updateTestSpecificFields();
@@ -150,6 +186,7 @@ function updateTestSpecificFields() {
         $('#throughputParams, #cpsParams').addClass('hidden');
         $('#customConfigSection input, #customConfigSection select').prop('required', false);
         $('#throughputParams input, #cpsParams input').prop('required', false);
+        $('#cpsPacketSize').prop('required', false); // Always disable cps_packet_size validation
         return;
     }
     
@@ -160,7 +197,8 @@ function updateTestSpecificFields() {
         
         // Enable validation for throughput fields, disable for CPS
         $('#bandwidth, #packetSize').prop('required', true);
-        $('#connectionsPerSecond, #cpsPacketSize').prop('required', false);
+        $('#connectionsPerSecond').prop('required', false);
+        $('#cpsPacketSize').prop('required', false); // Always disable cps_packet_size validation
         
         // Enable other common fields
         $('#testType, #testDuration, #snapshotInterval, #parallelSessions, #direction').prop('required', true);
@@ -170,7 +208,8 @@ function updateTestSpecificFields() {
         
         // Enable validation for CPS fields, disable for throughput
         $('#bandwidth, #packetSize').prop('required', false);
-        $('#connectionsPerSecond, #cpsPacketSize').prop('required', true);
+        $('#connectionsPerSecond').prop('required', true);
+        $('#cpsPacketSize').prop('required', false); // Always disable cps_packet_size validation
         
         // Enable other common fields
         $('#testType, #testDuration, #snapshotInterval, #parallelSessions, #direction').prop('required', true);
