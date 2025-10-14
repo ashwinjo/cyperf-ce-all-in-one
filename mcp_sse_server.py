@@ -345,7 +345,8 @@ class MCPHTTPServer:
                         "port": {"type": "integer", "description": "Server port", "default": 5202},
                         "length": {"type": "string", "description": "Packet length (e.g., '1k', '64k')", "default": "1k"},
                         "csv_stats": {"type": "boolean", "description": "Enable CSV statistics output", "default": True},
-                        "bidi": {"type": "boolean", "description": "Enable bidirectional mode", "default": False}
+                        "bidi": {"type": "boolean", "description": "Enable bidirectional mode", "default": False},
+                        "bind": {"type": "string", "description": "Bind to the interface associated with the IP address", "default": None}
                     },
                     "required": ["server_ip"]
                 }
@@ -369,7 +370,8 @@ class MCPHTTPServer:
                         "parallel": {"type": "integer", "description": "Number of parallel connections", "default": 1},
                         "reverse": {"type": "boolean", "description": "Enable reverse mode", "default": False},
                         "bidi": {"type": "boolean", "description": "Enable bidirectional mode", "default": False},
-                        "interval": {"type": "integer", "description": "Statistics reporting interval in seconds"}
+                        "interval": {"type": "integer", "description": "Statistics reporting interval in seconds"},
+                        "bind": {"type": "string", "description": "Bind to the interface associated with the IP address", "default": None}
                     },
                     "required": ["test_id", "server_ip", "client_ip"]
                 }

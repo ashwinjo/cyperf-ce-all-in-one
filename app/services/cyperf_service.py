@@ -42,6 +42,8 @@ class CyperfService:
             command += " --reverse"
         if params.get("csv_stats"):
             command += " --csv-stats"
+        if params.get("bind"):
+            command += f" --bind {params['bind']}"
         command += f" {test_id}_server.csv > {test_id}_server.log 2>&1 &"
         print(command)
         ssh = self._connect_ssh(server_ip)
@@ -90,7 +92,10 @@ class CyperfService:
             command += f" --interval {params['interval']}"
         if params.get("csv_stats"):
             command += " --csv-stats"
-        command += f" {test_id}_client.csv > {test_id}_client.log 2>&1 &"    
+        if params.get("bind"):
+            command += f" --bind {params['bind']}"
+        command += f" {test_id}_client.csv > {test_id}_client.log 2>&1 &"
+        print(command)    
         ssh = self._connect_ssh(client_ip)
         ssh.exec_command(command)
         find_cmd = "ps -ef | grep 'cyperf -c' | grep root | awk '{print $2}'"

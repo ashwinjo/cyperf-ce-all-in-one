@@ -8,6 +8,7 @@ class ServerParams(BaseModel):
     csv_stats: Optional[bool] = True
     bidi: bool = False
     reverse: bool = False
+    bind: Optional[str] = None
 
 class ClientParams(BaseModel):
     cps: Optional[bool] = False
@@ -21,6 +22,7 @@ class ClientParams(BaseModel):
     reverse: bool = False
     bidi: bool = False
     interval: Optional[int] = None
+    bind: Optional[str] = None
 
 class ServerRequest(BaseModel):
     server_ip: str

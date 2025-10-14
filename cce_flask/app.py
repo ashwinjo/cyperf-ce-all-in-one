@@ -49,7 +49,11 @@ def index():
 @app.route('/parameters')
 def parameters():
     """Section 1: Test Parameters Interface"""
-    return render_template('parameters.html')
+    # Extract base URL from CYPERF_API_BASE_URL
+    api_base_url = app.config.get('CYPERF_API_BASE_URL', 'http://localhost:8000/api')
+    base_url_parts = api_base_url.split('/')
+    base_url = '/'.join(base_url_parts[:3])  # Get http://hostname:port part
+    return render_template('parameters.html', base_url=base_url)
 
 @app.route('/statistics')
 def statistics():
@@ -395,7 +399,7 @@ def run_test_simple():
 if __name__ == '__main__':
     # Container-friendly configuration
     host = '0.0.0.0'  # Listen on all interfaces in container
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 5001))
     debug = app.config.get('DEBUG', False)
     
     print(f"Starting Flask app on {host}:{port}")

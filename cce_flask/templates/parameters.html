@@ -3,7 +3,7 @@
 {% block title %}Cyperf-CE Test Center v1.0.0{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
+<div class="space-y-8" style="min-height: 100vh; display: flex; flex-direction: column;">
     <!-- Backend Connection Status -->
     <div id="backendStatusContainer" class="mb-6" style="display: block !important;">
         <div class="bg-gray-800 border-2 border-cyperf-red rounded-lg p-4" style="background-color: #374151 !important; border-color: #DC3545 !important;">
@@ -35,7 +35,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" style="flex: 1;">
         <!-- Configuration Form -->
         <div class="lg:col-span-2">
             <div class="card">
@@ -46,6 +46,56 @@
                 <div class="card-body">
                     <form id="testConfigForm" onsubmit="submitTestConfig(event)" class="space-y-8">
                         
+                        <!-- Client Configuration -->
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="text-cyperf-red text-lg font-semibold flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0019.414 6L15 1.586A2 2 0 0013.586 1H10zm-1 2a1 1 0 011-1h3.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-8a1 1 0 01-1-1V4z" clip-rule="evenodd"/>
+                                        <path d="M3 4a2 2 0 00-2 2v10a2 2 0 002 2h3a1 1 0 001-1v-1a1 1 0 00-1-1H3V6h3a1 1 0 001-1V4a1 1 0 00-1-1H3z"/>
+                                    </svg>
+                                    Client Configuration
+                                </h4>
+                                <div class="mt-1 border-b border-cyperf-red/30"></div>
+                            </div>
+                                <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
+                                    <div class="relative">
+                                        <label for="clientIP" class="block text-sm font-medium text-gray-300 mb-1">Client IP Address</label>
+                                        <div class="relative rounded-lg shadow-sm">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                                                </svg>
+                                            </div>
+                                            <input type="text" 
+                                                   class="form-input block w-full pl-10 text-base rounded-lg bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-cyperf-red focus:border-transparent transition duration-150 ease-in-out h-12 shadow-sm" 
+                                                   id="clientIP" 
+                                                   name="client_ip" 
+                                                   value="127.0.0.1" 
+                                                   required 
+                                                   pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+                                        </div>
+                                        <p class="mt-1 text-sm text-gray-400">IP address where the client will run</p>
+                                    </div>
+                                    <div class="relative">
+                                        <label for="clientBind" class="block text-sm font-medium text-gray-300 mb-1">Client Bind IP (Optional)</label>
+                                        <div class="relative rounded-lg shadow-sm">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                                                </svg>
+                                            </div>
+                                            <input type="text" 
+                                                   class="form-input block w-full pl-10 text-base rounded-lg bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-cyperf-red focus:border-transparent transition duration-150 ease-in-out h-12 shadow-sm" 
+                                                   id="clientBind" 
+                                                   name="client_bind" 
+                                                   pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+                                        </div>
+                                        <p class="mt-1 text-sm text-gray-400">Bind to specific interface IP (optional)</p>
+                                    </div>
+                                </div>
+                        </div>
+
                         <!-- Server Configuration -->
                         <div class="space-y-6">
                             <div>
@@ -58,7 +108,7 @@
                                 </h4>
                                 <div class="mt-1 border-b border-cyperf-red/30"></div>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
                                 <div class="relative">
                                     <label for="serverIP" class="block text-sm font-medium text-gray-300 mb-1">Server IP Address</label>
                                     <div class="relative rounded-lg shadow-sm">
@@ -78,6 +128,62 @@
                                     <p class="mt-1 text-sm text-gray-400">IP address where the server will run</p>
                                 </div>
                                 <div class="relative">
+                                    <label for="serverBind" class="block text-sm font-medium text-gray-300 mb-1">Server Bind IP (Optional)</label>
+                                    <div class="relative rounded-lg shadow-sm">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                                            </svg>
+                                        </div>
+                                        <input type="text" 
+                                               class="form-input block w-full pl-10 text-base rounded-lg bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-cyperf-red focus:border-transparent transition duration-150 ease-in-out h-12 shadow-sm" 
+                                               id="serverBind" 
+                                               name="server_bind" 
+                                               pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+                                    </div>
+                                    <p class="mt-1 text-sm text-gray-400">Bind to specific interface IP (optional)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Test Type Selection -->
+                        <div class="space-y-4 bg-gray-800 p-6 rounded-lg mb-8">
+                            <h4 class="text-cyperf-red text-lg font-semibold flex items-center mb-4">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"/>
+                                </svg>
+                                Select Test Type
+                            </h4>
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-4">
+                                    <input type="radio" id="highThroughput" name="testPreset" value="highThroughput" class="form-radio text-cyperf-red" checked>
+                                    <label for="highThroughput" class="text-white">High Throughput Test (10 Gbps)</label>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <input type="radio" id="highCPS" name="testPreset" value="highCPS" class="form-radio text-cyperf-red">
+                                    <label for="highCPS" class="text-white">High CPS Test (10K CPS)</label>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <input type="radio" id="custom" name="testPreset" value="custom" class="form-radio text-cyperf-red">
+                                    <label for="custom" class="text-white">Custom Test Configuration</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Test Configuration -->
+                        <div id="customConfigSection" class="space-y-6">
+                            <div>
+                                <h4 class="text-cyperf-red text-lg font-semibold flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"/>
+                                    </svg>
+                                    Test Configuration
+                                </h4>
+                                <div class="mt-1 border-b border-cyperf-red/30"></div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Port Configuration -->
+                                <div class="relative">
                                     <label for="serverPort" class="block text-sm font-medium text-gray-300 mb-1">Server Port (Optional)</label>
                                     <div class="relative rounded-lg shadow-sm">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -95,40 +201,7 @@
                                     </div>
                                     <p class="mt-1 text-sm text-gray-400">Leave empty for auto-assignment</p>
                                 </div>
-                            </div>
-                        </div>
 
-                        <!-- Client Configuration -->
-                        <div class="space-y-6">
-                            <div>
-                                <h4 class="text-cyperf-red text-lg font-semibold flex items-center">
-                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0019.414 6L15 1.586A2 2 0 0013.586 1H10zm-1 2a1 1 0 011-1h3.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-8a1 1 0 01-1-1V4z" clip-rule="evenodd"/>
-                                        <path d="M3 4a2 2 0 00-2 2v10a2 2 0 002 2h3a1 1 0 001-1v-1a1 1 0 00-1-1H3V6h3a1 1 0 001-1V4a1 1 0 00-1-1H3z"/>
-                                    </svg>
-                                    Client Configuration
-                                </h4>
-                                <div class="mt-1 border-b border-cyperf-red/30"></div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="relative">
-                                    <label for="clientIP" class="block text-sm font-medium text-gray-300 mb-1">Client IP Address</label>
-                                    <div class="relative rounded-lg shadow-sm">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
-                                            </svg>
-                                        </div>
-                                        <input type="text" 
-                                               class="form-input block w-full pl-10 text-base rounded-lg bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-cyperf-red focus:border-transparent transition duration-150 ease-in-out h-12 shadow-sm" 
-                                               id="clientIP" 
-                                               name="client_ip" 
-                                               value="127.0.0.1" 
-                                               required 
-                                               pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
-                                    </div>
-                                    <p class="mt-1 text-sm text-gray-400">IP address where the client will run</p>
-                                </div>
                                 <div class="relative">
                                     <label for="clientPort" class="block text-sm font-medium text-gray-300 mb-1">Client Port (Optional)</label>
                                     <div class="relative rounded-lg shadow-sm">
@@ -148,20 +221,9 @@
                                     <p class="mt-1 text-sm text-gray-400">Leave empty for auto-assignment</p>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Test Configuration -->
-                        <div class="space-y-6">
-                            <div>
-                                <h4 class="text-cyperf-red text-lg font-semibold flex items-center">
-                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"/>
-                                    </svg>
-                                    Objective and Timeline
-                                </h4>
-                                <div class="mt-1 border-b border-cyperf-red/30"></div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Test Type Selection -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                 <div class="relative">
                                     <label for="testType" class="block text-sm font-medium text-gray-300 mb-1">Test Type</label>
                                     <div class="relative rounded-lg shadow-sm">
@@ -389,7 +451,7 @@
 
         <!-- Configuration Summary -->
         <div class="lg:col-span-1">
-            <div class="card sticky top-4 w-full">
+            <div class="card sticky top-4 w-full" style="max-height: calc(100vh - 2rem); overflow-y: auto;">
                 <div class="card-header">
                     <h3 class="text-xl font-semibold text-white flex items-center">
                         <svg class="w-6 h-6 mr-2 text-cyperf-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -444,6 +506,77 @@
                                 <tr class="transition-colors hover:bg-gray-700">
                                     <td class="px-4 py-3 w-1/3">
                                         <div class="flex items-center">
+                                            <svg class="h-4 w-4 text-purple-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                                            </svg>
+                                            <span class="text-gray-400 text-sm">Client IP</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 w-2/3">
+                                        <div class="text-base font-medium text-white break-words" id="summaryClientIP">127.0.0.1</div>
+                                    </td>
+                                </tr>
+                                <tr class="transition-colors hover:bg-gray-700">
+                                    <td class="px-4 py-3 w-1/3">
+                                        <div class="flex items-center">
+                                            <svg class="h-4 w-4 text-indigo-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                                            </svg>
+                                            <span class="text-gray-400 text-sm">Server IP</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 w-2/3">
+                                        <div class="text-base font-medium text-white break-words" id="summaryServerIP">127.0.0.1</div>
+                                    </td>
+                                </tr>
+                                <!-- Test Parameters Section -->
+                                <tr class="bg-gray-700/50">
+                                    <td colspan="2" class="px-4 py-2">
+                                        <div class="text-sm font-semibold text-cyperf-red">Test Parameters</div>
+                                    </td>
+                                </tr>
+                                <tr class="transition-colors hover:bg-gray-700">
+                                    <td class="px-4 py-3 w-1/3">
+                                        <div class="flex items-center">
+                                            <svg class="h-4 w-4 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            <span class="text-gray-400 text-sm">Duration</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 w-2/3">
+                                        <div class="text-base font-medium text-white break-words" id="summaryDuration">30 seconds</div>
+                                    </td>
+                                </tr>
+                                <tr class="transition-colors hover:bg-gray-700">
+                                    <td class="px-4 py-3 w-1/3">
+                                        <div class="flex items-center">
+                                            <svg class="h-4 w-4 text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                            <span class="text-gray-400 text-sm">Statistics Interval</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 w-2/3">
+                                        <div class="text-base font-medium text-white break-words" id="summaryInterval">5 seconds</div>
+                                    </td>
+                                </tr>
+                                <tr class="transition-colors hover:bg-gray-700">
+                                    <td class="px-4 py-3 w-1/3">
+                                        <div class="flex items-center">
+                                            <svg class="h-4 w-4 text-purple-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                                            </svg>
+                                            <span class="text-gray-400 text-sm">Parallel Sessions</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 w-2/3">
+                                        <div class="text-base font-medium text-white break-words" id="summaryParallelSessions">6500</div>
+                                    </td>
+                                </tr>
+                                <tr class="transition-colors hover:bg-gray-700" id="summaryBandwidthRow">
+                                    <td class="px-4 py-3 w-1/3">
+                                        <div class="flex items-center">
                                             <svg class="h-4 w-4 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                                             </svg>
@@ -451,10 +584,23 @@
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 w-2/3">
-                                        <div class="text-base font-medium text-white break-words" id="summaryBandwidth">100 Mbps</div>
+                                        <div class="text-base font-medium text-white break-words" id="summaryBandwidth">10000 Mbps</div>
                                     </td>
                                 </tr>
-                                <tr class="transition-colors hover:bg-gray-700 hidden">
+                                <tr class="transition-colors hover:bg-gray-700" id="summaryPacketSizeRow">
+                                    <td class="px-4 py-3 w-1/3">
+                                        <div class="flex items-center">
+                                            <svg class="h-4 w-4 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5.707 5.707a2 2 0 010 2.828l-7.707 7.707a2 2 0 01-2.828 0l-5.707-5.707A2 2 0 013 12.293V7a4 4 0 014-4z"/>
+                                            </svg>
+                                            <span class="text-gray-400 text-sm">Packet Size</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 w-2/3">
+                                        <div class="text-base font-medium text-white break-words" id="summaryPacketSize">1500 bytes</div>
+                                    </td>
+                                </tr>
+                                <tr class="transition-colors hover:bg-gray-700 hidden" id="summaryCPSRow">
                                     <td class="px-4 py-3 w-1/3">
                                         <div class="flex items-center">
                                             <svg class="h-4 w-4 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -464,7 +610,7 @@
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 w-2/3">
-                                        <div class="text-base font-medium text-white break-words" id="summaryCPS">1000 conn/s</div>
+                                        <div class="text-base font-medium text-white break-words" id="summaryCPS">10000 conn/s</div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -724,6 +870,11 @@
     
     <!-- HTML2PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- Pass base URL to JavaScript -->
+    <script>
+        window.baseUrl = "{{ base_url }}";
+    </script>
     
     <!-- Custom Scripts -->
     <script src="{{ url_for('static', filename='js/performance-charts.js') }}"></script>

@@ -50,6 +50,11 @@
           "description": "Run in reverse mode - server sends and client receives",
           "default": false,
           "optional": true
+        },
+        "bind": {
+          "type": "string",
+          "description": "Bind to the interface associated with the IP address",
+          "optional": true
         }
       }
     },
@@ -134,6 +139,11 @@
         "interval": {
           "type": "integer",
           "description": "Statistics reporting interval in seconds",
+          "optional": true
+        },
+        "bind": {
+          "type": "string",
+          "description": "Bind to the interface associated with the IP address",
           "optional": true
         }
       }

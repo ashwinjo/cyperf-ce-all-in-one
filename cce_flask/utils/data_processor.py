@@ -247,7 +247,8 @@ class DataProcessor:
             "length": f"{config.get('packet_size', 1500)}",  # Use packet_size from form
             "csv_stats": True,
             "bidi": config.get('direction') == 'bidirectional',
-            "reverse": config.get('traffic_direction') == 'server_to_client'
+            "reverse": config.get('traffic_direction') == 'server_to_client',
+            "bind": config.get('server_bind', None)
         }
         
         # Client parameters (ClientParams schema from OpenAPI)
@@ -260,7 +261,8 @@ class DataProcessor:
             "parallel": int(config.get('parallel_sessions', 1)),  # Use parallel_sessions from form
             "reverse": config.get('traffic_direction') == 'server_to_client',
             "bidi": config.get('direction') == 'bidirectional',
-            "interval": int(config.get('snapshot_interval', 5))
+            "interval": int(config.get('snapshot_interval', 5)),
+            "bind": config.get('client_bind', None)
         }
         
         # Add optional parameters
