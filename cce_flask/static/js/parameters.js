@@ -461,10 +461,17 @@ function updateServerStats(stats) {
             stats = JSON.parse(stats);
         }
 
+        // Handle array format - use the latest entry for summary
+        let latestStats = stats;
+        if (Array.isArray(stats)) {
+            if (stats.length === 0) return;
+            latestStats = stats[stats.length - 1]; // Get the most recent entry
+        }
+
         // Extract throughput from Throughput field
-        const throughput = parseFloat(stats.Throughput) || 0;
-        const throughputTX = parseFloat(stats.ThroughputTX) || 0;
-        const throughputRX = parseFloat(stats.ThroughputRX) || 0;
+        const throughput = parseFloat(latestStats.Throughput) || 0;
+        const throughputTX = parseFloat(latestStats.ThroughputTX) || 0;
+        const throughputRX = parseFloat(latestStats.ThroughputRX) || 0;
         
         // Update throughput displays
         $('#avgThroughput .text-cyperf-red').text('Server: ' + formatNumber(throughput, 'bps'));
@@ -472,13 +479,15 @@ function updateServerStats(stats) {
             formatNumber(throughputTX, 'bps') + ' / ' + 
             formatNumber(throughputRX, 'bps'));
 
-        // Extract and display CPS data if available
-        const tcpDataThroughput = parseFloat(stats.TCPDataThroughput) || 0;
-        const tcpDataThroughputTX = parseFloat(stats.TCPDataThroughputTX) || 0;
-        const tcpDataThroughputRX = parseFloat(stats.TCPDataThroughputRX) || 0;
+        // Extract and display CPS/Connection data if available
+        const tcpDataThroughput = parseFloat(latestStats.TCPDataThroughput) || 0;
+        const connectionRate = parseFloat(latestStats.ConnectionRate) || 0;
+        const activeConnections = parseFloat(latestStats.ActiveConnections) || 0;
         
-        // Update CPS displays
-        $('#avgLatency .text-cyperf-red').text('Server TCP: ' + formatNumber(tcpDataThroughput, 'bps'));
+        // Update displays
+        $('#avgLatency .text-cyperf-red').text('Server TCP: ' + formatNumber(tcpDataThroughput, 'bps') + 
+            ' | Conn Rate: ' + formatNumber(connectionRate, '/s') +
+            ' | Active: ' + formatNumber(activeConnections, ''));
     } catch (e) {
         console.error('Error parsing server stats:', e);
     }
@@ -486,30 +495,72 @@ function updateServerStats(stats) {
     // Update server stats table
     const serverStatsTable = $('#serverStatsTable');
     if (serverStatsTable.length) {
-        let html = '<table class="min-w-full divide-y divide-gray-700">';
-        html += '<thead><tr>';
-        html += '<th class="px-4 py-2 text-left text-sm font-semibold text-white">Metric</th>';
-        html += '<th class="px-4 py-2 text-right text-sm font-semibold text-white">Value</th>';
-        html += '</tr></thead><tbody>';
+        let html = '<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-700">';
         
-        // Add all available stats
-        Object.entries(stats).forEach(([key, value]) => {
-            if (typeof value === 'object') {
-                Object.entries(value).forEach(([subKey, subValue]) => {
-                    html += '<tr class="transition-colors hover:bg-gray-700">';
-                    html += `<td class="px-4 py-2 text-sm text-gray-300">${key} ${subKey}</td>`;
-                    html += `<td class="px-4 py-2 text-sm text-right text-white">${formatNumber(parseFloat(subValue) || 0, key === 'throughput' ? 'bps' : 'ms')}</td>`;
-                    html += '</tr>';
+        // If array, show each timestamp as a row
+        if (Array.isArray(stats) && stats.length > 0) {
+            // Get all keys from the first entry (excluding Timestamp)
+            const keys = Object.keys(stats[0]).filter(k => k !== 'Timestamp');
+            
+            // Build header row with metric names
+            html += '<thead><tr>';
+            html += '<th class="px-4 py-2 text-center text-sm font-semibold text-white bg-gray-800">#</th>';
+            html += '<th class="px-4 py-2 text-left text-sm font-semibold text-white bg-gray-800">Timestamp</th>';
+            keys.forEach(key => {
+                html += `<th class="px-4 py-2 text-right text-sm font-semibold text-white bg-gray-800 whitespace-nowrap">${key}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            // Add a row for each timestamp
+            stats.forEach((entry, idx) => {
+                const time = new Date(parseInt(entry.Timestamp) * 1000).toLocaleTimeString();
+                html += '<tr class="transition-colors hover:bg-gray-700">';
+                html += `<td class="px-4 py-2 text-sm text-center text-gray-400">${idx + 1}</td>`;
+                html += `<td class="px-4 py-2 text-sm text-left text-blue-400 whitespace-nowrap">${time}</td>`;
+                
+                keys.forEach(key => {
+                    const value = parseFloat(entry[key]) || 0;
+                    const unit = key.includes('Throughput') ? 'bps' : 
+                                key.includes('Latency') ? 'μs' :
+                                key.includes('Rate') ? '/s' :
+                                key.includes('Bytes') ? 'B' :
+                                key.includes('Packets') ? '' : '';
+                    const formattedValue = formatNumber(value, unit);
+                    
+                    // Apply color coding based on metric type
+                    let colorClass = 'text-white';
+                    if (key.includes('Throughput')) colorClass = 'text-green-400';
+                    else if (key.includes('Failed') || key.includes('Error') || key.includes('Dropped')) colorClass = 'text-red-400';
+                    else if (key.includes('Succeeded') || key.includes('Accepted')) colorClass = 'text-blue-400';
+                    else if (key.includes('Rate')) colorClass = 'text-yellow-400';
+                    
+                    html += `<td class="px-4 py-2 text-sm text-right ${colorClass} whitespace-nowrap">${formattedValue}</td>`;
                 });
-            } else {
+                html += '</tr>';
+            });
+        } else {
+            // Single object format (fallback)
+            html += '<thead><tr>';
+            html += '<th class="px-4 py-2 text-left text-sm font-semibold text-white">Metric</th>';
+            html += '<th class="px-4 py-2 text-right text-sm font-semibold text-white">Value</th>';
+            html += '</tr></thead><tbody>';
+            
+            Object.entries(stats).forEach(([key, value]) => {
+                if (key === 'Timestamp') return;
                 html += '<tr class="transition-colors hover:bg-gray-700">';
                 html += `<td class="px-4 py-2 text-sm text-gray-300">${key}</td>`;
-                html += `<td class="px-4 py-2 text-sm text-right text-white">${value}</td>`;
+                const numValue = parseFloat(value) || 0;
+                const unit = key.includes('Throughput') ? 'bps' : 
+                            key.includes('Latency') ? 'μs' :
+                            key.includes('Rate') ? '/s' :
+                            key.includes('Bytes') ? 'B' :
+                            key.includes('Packets') ? '' : '';
+                html += `<td class="px-4 py-2 text-sm text-right text-white">${formatNumber(numValue, unit)}</td>`;
                 html += '</tr>';
-            }
-        });
+            });
+        }
         
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
         serverStatsTable.html(html);
     }
 }
@@ -524,10 +575,17 @@ function updateClientStats(stats) {
             stats = JSON.parse(stats);
         }
 
+        // Handle array format - use the latest entry for summary
+        let latestStats = stats;
+        if (Array.isArray(stats)) {
+            if (stats.length === 0) return;
+            latestStats = stats[stats.length - 1]; // Get the most recent entry
+        }
+
         // Extract throughput from Throughput field
-        const throughput = parseFloat(stats.Throughput) || 0;
-        const throughputTX = parseFloat(stats.ThroughputTX) || 0;
-        const throughputRX = parseFloat(stats.ThroughputRX) || 0;
+        const throughput = parseFloat(latestStats.Throughput) || 0;
+        const throughputTX = parseFloat(latestStats.ThroughputTX) || 0;
+        const throughputRX = parseFloat(latestStats.ThroughputRX) || 0;
         
         // Update throughput displays
         $('#avgThroughput .text-yellow-500').text('Client: ' + formatNumber(throughput, 'bps'));
@@ -535,13 +593,15 @@ function updateClientStats(stats) {
             formatNumber(throughputTX, 'bps') + ' / ' + 
             formatNumber(throughputRX, 'bps'));
 
-        // Extract and display CPS data if available
-        const tcpDataThroughput = parseFloat(stats.TCPDataThroughput) || 0;
-        const tcpDataThroughputTX = parseFloat(stats.TCPDataThroughputTX) || 0;
-        const tcpDataThroughputRX = parseFloat(stats.TCPDataThroughputRX) || 0;
+        // Extract and display CPS/Connection data if available
+        const tcpDataThroughput = parseFloat(latestStats.TCPDataThroughput) || 0;
+        const connectionRate = parseFloat(latestStats.ConnectionRate) || 0;
+        const activeConnections = parseFloat(latestStats.ActiveConnections) || 0;
         
-        // Update CPS displays
-        $('#avgLatency .text-yellow-500').text('Client TCP: ' + formatNumber(tcpDataThroughput, 'bps'));
+        // Update displays
+        $('#avgLatency .text-yellow-500').text('Client TCP: ' + formatNumber(tcpDataThroughput, 'bps') + 
+            ' | Conn Rate: ' + formatNumber(connectionRate, '/s') +
+            ' | Active: ' + formatNumber(activeConnections, ''));
     } catch (e) {
         console.error('Error parsing client stats:', e);
     }
@@ -549,30 +609,73 @@ function updateClientStats(stats) {
     // Update client stats table
     const clientStatsTable = $('#clientStatsTable');
     if (clientStatsTable.length) {
-        let html = '<table class="min-w-full divide-y divide-gray-700">';
-        html += '<thead><tr>';
-        html += '<th class="px-4 py-2 text-left text-sm font-semibold text-white">Metric</th>';
-        html += '<th class="px-4 py-2 text-right text-sm font-semibold text-white">Value</th>';
-        html += '</tr></thead><tbody>';
+        let html = '<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-700">';
         
-        // Add all available stats
-        Object.entries(stats).forEach(([key, value]) => {
-            if (typeof value === 'object') {
-                Object.entries(value).forEach(([subKey, subValue]) => {
-                    html += '<tr class="transition-colors hover:bg-gray-700">';
-                    html += `<td class="px-4 py-2 text-sm text-gray-300">${key} ${subKey}</td>`;
-                    html += `<td class="px-4 py-2 text-sm text-right text-white">${formatNumber(parseFloat(subValue) || 0, key === 'throughput' ? 'bps' : 'ms')}</td>`;
-                    html += '</tr>';
+        // If array, show each timestamp as a row
+        if (Array.isArray(stats) && stats.length > 0) {
+            // Get all keys from the first entry (excluding Timestamp)
+            const keys = Object.keys(stats[0]).filter(k => k !== 'Timestamp');
+            
+            // Build header row with metric names
+            html += '<thead><tr>';
+            html += '<th class="px-4 py-2 text-center text-sm font-semibold text-white bg-gray-800">#</th>';
+            html += '<th class="px-4 py-2 text-left text-sm font-semibold text-white bg-gray-800">Timestamp</th>';
+            keys.forEach(key => {
+                html += `<th class="px-4 py-2 text-right text-sm font-semibold text-white bg-gray-800 whitespace-nowrap">${key}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            // Add a row for each timestamp
+            stats.forEach((entry, idx) => {
+                const time = new Date(parseInt(entry.Timestamp) * 1000).toLocaleTimeString();
+                html += '<tr class="transition-colors hover:bg-gray-700">';
+                html += `<td class="px-4 py-2 text-sm text-center text-gray-400">${idx + 1}</td>`;
+                html += `<td class="px-4 py-2 text-sm text-left text-blue-400 whitespace-nowrap">${time}</td>`;
+                
+                keys.forEach(key => {
+                    const value = parseFloat(entry[key]) || 0;
+                    const unit = key.includes('Throughput') ? 'bps' : 
+                                key.includes('Latency') ? 'μs' :
+                                key.includes('Rate') ? '/s' :
+                                key.includes('Bytes') ? 'B' :
+                                key.includes('Packets') ? '' : '';
+                    const formattedValue = formatNumber(value, unit);
+                    
+                    // Apply color coding based on metric type
+                    let colorClass = 'text-white';
+                    if (key.includes('Throughput')) colorClass = 'text-green-400';
+                    else if (key.includes('Failed') || key.includes('Error') || key.includes('Dropped')) colorClass = 'text-red-400';
+                    else if (key.includes('Succeeded') || key.includes('Accepted')) colorClass = 'text-blue-400';
+                    else if (key.includes('Rate')) colorClass = 'text-yellow-400';
+                    else if (key.includes('Latency')) colorClass = 'text-yellow-400';
+                    
+                    html += `<td class="px-4 py-2 text-sm text-right ${colorClass} whitespace-nowrap">${formattedValue}</td>`;
                 });
-            } else {
+                html += '</tr>';
+            });
+        } else {
+            // Single object format (fallback)
+            html += '<thead><tr>';
+            html += '<th class="px-4 py-2 text-left text-sm font-semibold text-white">Metric</th>';
+            html += '<th class="px-4 py-2 text-right text-sm font-semibold text-white">Value</th>';
+            html += '</tr></thead><tbody>';
+            
+            Object.entries(stats).forEach(([key, value]) => {
+                if (key === 'Timestamp') return;
                 html += '<tr class="transition-colors hover:bg-gray-700">';
                 html += `<td class="px-4 py-2 text-sm text-gray-300">${key}</td>`;
-                html += `<td class="px-4 py-2 text-sm text-right text-white">${value}</td>`;
+                const numValue = parseFloat(value) || 0;
+                const unit = key.includes('Throughput') ? 'bps' : 
+                            key.includes('Latency') ? 'μs' :
+                            key.includes('Rate') ? '/s' :
+                            key.includes('Bytes') ? 'B' :
+                            key.includes('Packets') ? '' : '';
+                html += `<td class="px-4 py-2 text-sm text-right text-white">${formatNumber(numValue, unit)}</td>`;
                 html += '</tr>';
-            }
-        });
+            });
+        }
         
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
         clientStatsTable.html(html);
     }
 }
@@ -597,7 +700,7 @@ function updateTestProgress(testId) {
         const remaining = Math.max(duration - elapsed, 0);
         $('#testTimeRemaining').text('Time remaining: ' + Math.round(remaining) + 's');
         
-        // Get current stats
+        // Get current stats with error handling
         $.ajax({
             url: window.baseUrl + '/api/server/stats/' + testId,
             method: 'GET',
@@ -605,6 +708,9 @@ function updateTestProgress(testId) {
                 if (serverStats) {
                     updateServerStats(serverStats);
                 }
+            },
+            error: function(xhr) {
+                console.log('Server stats not yet available:', xhr.status);
             }
         });
         
@@ -615,6 +721,9 @@ function updateTestProgress(testId) {
                 if (clientStats) {
                     updateClientStats(clientStats);
                 }
+            },
+            error: function(xhr) {
+                console.log('Client stats not yet available:', xhr.status);
             }
         });
         
@@ -625,25 +734,37 @@ function updateTestProgress(testId) {
                 $('#testProgressModal').addClass('hidden');
                 $('#testResultsSection').removeClass('hidden');
                 
-                // Get final stats
+                // Get final stats with error handling
                 $.ajax({
                     url: window.baseUrl + '/api/server/stats/' + testId,
                     method: 'GET',
-                    success: updateServerStats
+                    success: updateServerStats,
+                    error: function(xhr) {
+                        console.error('Failed to get final server stats:', xhr.status);
+                        showAlert('Failed to retrieve server statistics', 'warning');
+                    }
                 });
                 
                 $.ajax({
                     url: window.baseUrl + '/api/client/stats/' + testId,
                     method: 'GET',
-                    success: updateClientStats
+                    success: updateClientStats,
+                    error: function(xhr) {
+                        console.error('Failed to get final client stats:', xhr.status);
+                        showAlert('Failed to retrieve client statistics', 'warning');
+                    }
                 });
                 
-                // Get logs
+                // Get logs with error handling
                 $.ajax({
                     url: window.baseUrl + '/api/server/logs/' + testId,
                     method: 'GET',
                     success: function(response) {
                         $('#serverLogsContent').text(response.content || 'No logs available');
+                    },
+                    error: function(xhr) {
+                        console.error('Failed to get server logs:', xhr.status);
+                        $('#serverLogsContent').text('Failed to retrieve server logs');
                     }
                 });
                 
@@ -652,9 +773,28 @@ function updateTestProgress(testId) {
                     method: 'GET',
                     success: function(response) {
                         $('#clientLogsContent').text(response.content || 'No logs available');
+                    },
+                    error: function(xhr) {
+                        console.error('Failed to get client logs:', xhr.status);
+                        $('#clientLogsContent').text('Failed to retrieve client logs');
                     }
                 });
             }, 1000);
         }
     }, 1000);
+}
+
+// Function to show client logs modal
+function showClientLogs() {
+    $('#clientLogsModal').removeClass('hidden');
+}
+
+// Function to show server logs modal
+function showServerLogs() {
+    $('#serverLogsModal').removeClass('hidden');
+}
+
+// Function to close modal
+function closeModal(modalId) {
+    $('#' + modalId).addClass('hidden');
 }
