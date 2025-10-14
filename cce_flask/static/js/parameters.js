@@ -435,11 +435,17 @@ function submitTestConfig(event) {
 
 // Function to format numbers with units
 function formatNumber(num, unit) {
-    if (num >= 1000000000) {
+    // Handle non-numeric or invalid values
+    if (typeof num !== 'number' || isNaN(num)) {
+        return '0 ' + unit;
+    }
+    
+    const absNum = Math.abs(num);
+    if (absNum >= 1000000000) {
         return (num / 1000000000).toFixed(2) + ' G' + unit;
-    } else if (num >= 1000000) {
+    } else if (absNum >= 1000000) {
         return (num / 1000000).toFixed(2) + ' M' + unit;
-    } else if (num >= 1000) {
+    } else if (absNum >= 1000) {
         return (num / 1000).toFixed(2) + ' K' + unit;
     }
     return num.toFixed(2) + ' ' + unit;
@@ -451,13 +457,13 @@ function updateServerStats(stats) {
 
     // Update server throughput
     if (stats.throughput) {
-        $('#avgThroughput .text-cyperf-red').text('Server: ' + formatNumber(stats.throughput.avg, 'bps'));
-        $('#peakThroughput .text-cyperf-red').text('Server: ' + formatNumber(stats.throughput.peak, 'bps'));
+        $('#avgThroughput .text-cyperf-red').text('Server: ' + formatNumber(parseFloat(stats.throughput.avg) || 0, 'bps'));
+        $('#peakThroughput .text-cyperf-red').text('Server: ' + formatNumber(parseFloat(stats.throughput.peak) || 0, 'bps'));
     }
 
     // Update server latency
     if (stats.latency) {
-        $('#avgLatency .text-cyperf-red').text('Server: ' + formatNumber(stats.latency.avg, 'ms'));
+        $('#avgLatency .text-cyperf-red').text('Server: ' + formatNumber(parseFloat(stats.latency.avg) || 0, 'ms'));
     }
 
     // Update server stats table
@@ -475,7 +481,7 @@ function updateServerStats(stats) {
                 Object.entries(value).forEach(([subKey, subValue]) => {
                     html += '<tr class="transition-colors hover:bg-gray-700">';
                     html += `<td class="px-4 py-2 text-sm text-gray-300">${key} ${subKey}</td>`;
-                    html += `<td class="px-4 py-2 text-sm text-right text-white">${formatNumber(subValue, key === 'throughput' ? 'bps' : 'ms')}</td>`;
+                    html += `<td class="px-4 py-2 text-sm text-right text-white">${formatNumber(parseFloat(subValue) || 0, key === 'throughput' ? 'bps' : 'ms')}</td>`;
                     html += '</tr>';
                 });
             } else {
@@ -497,13 +503,13 @@ function updateClientStats(stats) {
 
     // Update client throughput
     if (stats.throughput) {
-        $('#avgThroughput .text-yellow-500').text('Client: ' + formatNumber(stats.throughput.avg, 'bps'));
-        $('#peakThroughput .text-yellow-500').text('Client: ' + formatNumber(stats.throughput.peak, 'bps'));
+        $('#avgThroughput .text-yellow-500').text('Client: ' + formatNumber(parseFloat(stats.throughput.avg) || 0, 'bps'));
+        $('#peakThroughput .text-yellow-500').text('Client: ' + formatNumber(parseFloat(stats.throughput.peak) || 0, 'bps'));
     }
 
     // Update client latency
     if (stats.latency) {
-        $('#avgLatency .text-yellow-500').text('Client: ' + formatNumber(stats.latency.avg, 'ms'));
+        $('#avgLatency .text-yellow-500').text('Client: ' + formatNumber(parseFloat(stats.latency.avg) || 0, 'ms'));
     }
 
     // Update client stats table
@@ -521,7 +527,7 @@ function updateClientStats(stats) {
                 Object.entries(value).forEach(([subKey, subValue]) => {
                     html += '<tr class="transition-colors hover:bg-gray-700">';
                     html += `<td class="px-4 py-2 text-sm text-gray-300">${key} ${subKey}</td>`;
-                    html += `<td class="px-4 py-2 text-sm text-right text-white">${formatNumber(subValue, key === 'throughput' ? 'bps' : 'ms')}</td>`;
+                    html += `<td class="px-4 py-2 text-sm text-right text-white">${formatNumber(parseFloat(subValue) || 0, key === 'throughput' ? 'bps' : 'ms')}</td>`;
                     html += '</tr>';
                 });
             } else {
