@@ -455,15 +455,32 @@ function formatNumber(num, unit) {
 function updateServerStats(stats) {
     if (!stats) return;
 
-    // Update server throughput
-    if (stats.throughput) {
-        $('#avgThroughput .text-cyperf-red').text('Server: ' + formatNumber(parseFloat(stats.throughput.avg) || 0, 'bps'));
-        $('#peakThroughput .text-cyperf-red').text('Server: ' + formatNumber(parseFloat(stats.throughput.peak) || 0, 'bps'));
-    }
+    try {
+        // Parse stats if it's a string
+        if (typeof stats === 'string') {
+            stats = JSON.parse(stats);
+        }
 
-    // Update server latency
-    if (stats.latency) {
-        $('#avgLatency .text-cyperf-red').text('Server: ' + formatNumber(parseFloat(stats.latency.avg) || 0, 'ms'));
+        // Extract throughput from Throughput field
+        const throughput = parseFloat(stats.Throughput) || 0;
+        const throughputTX = parseFloat(stats.ThroughputTX) || 0;
+        const throughputRX = parseFloat(stats.ThroughputRX) || 0;
+        
+        // Update throughput displays
+        $('#avgThroughput .text-cyperf-red').text('Server: ' + formatNumber(throughput, 'bps'));
+        $('#peakThroughput .text-cyperf-red').text('Server TX/RX: ' + 
+            formatNumber(throughputTX, 'bps') + ' / ' + 
+            formatNumber(throughputRX, 'bps'));
+
+        // Extract and display CPS data if available
+        const tcpDataThroughput = parseFloat(stats.TCPDataThroughput) || 0;
+        const tcpDataThroughputTX = parseFloat(stats.TCPDataThroughputTX) || 0;
+        const tcpDataThroughputRX = parseFloat(stats.TCPDataThroughputRX) || 0;
+        
+        // Update CPS displays
+        $('#avgLatency .text-cyperf-red').text('Server TCP: ' + formatNumber(tcpDataThroughput, 'bps'));
+    } catch (e) {
+        console.error('Error parsing server stats:', e);
     }
 
     // Update server stats table
@@ -501,15 +518,32 @@ function updateServerStats(stats) {
 function updateClientStats(stats) {
     if (!stats) return;
 
-    // Update client throughput
-    if (stats.throughput) {
-        $('#avgThroughput .text-yellow-500').text('Client: ' + formatNumber(parseFloat(stats.throughput.avg) || 0, 'bps'));
-        $('#peakThroughput .text-yellow-500').text('Client: ' + formatNumber(parseFloat(stats.throughput.peak) || 0, 'bps'));
-    }
+    try {
+        // Parse stats if it's a string
+        if (typeof stats === 'string') {
+            stats = JSON.parse(stats);
+        }
 
-    // Update client latency
-    if (stats.latency) {
-        $('#avgLatency .text-yellow-500').text('Client: ' + formatNumber(parseFloat(stats.latency.avg) || 0, 'ms'));
+        // Extract throughput from Throughput field
+        const throughput = parseFloat(stats.Throughput) || 0;
+        const throughputTX = parseFloat(stats.ThroughputTX) || 0;
+        const throughputRX = parseFloat(stats.ThroughputRX) || 0;
+        
+        // Update throughput displays
+        $('#avgThroughput .text-yellow-500').text('Client: ' + formatNumber(throughput, 'bps'));
+        $('#peakThroughput .text-yellow-500').text('Client TX/RX: ' + 
+            formatNumber(throughputTX, 'bps') + ' / ' + 
+            formatNumber(throughputRX, 'bps'));
+
+        // Extract and display CPS data if available
+        const tcpDataThroughput = parseFloat(stats.TCPDataThroughput) || 0;
+        const tcpDataThroughputTX = parseFloat(stats.TCPDataThroughputTX) || 0;
+        const tcpDataThroughputRX = parseFloat(stats.TCPDataThroughputRX) || 0;
+        
+        // Update CPS displays
+        $('#avgLatency .text-yellow-500').text('Client TCP: ' + formatNumber(tcpDataThroughput, 'bps'));
+    } catch (e) {
+        console.error('Error parsing client stats:', e);
     }
 
     // Update client stats table
