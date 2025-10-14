@@ -230,7 +230,7 @@ function updateConfigSummary() {
     }
 }
 
-// Function to check backend status
+// Function to check backend status.
 function checkBackendStatus() {
     const apiUrl = window.baseUrl + '/docs';
     
