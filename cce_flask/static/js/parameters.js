@@ -39,7 +39,11 @@ $(document).ready(function() {
         const selectedPreset = $(this).val();
         if (selectedPreset === 'custom') {
             $('#customConfigSection').slideDown(300);
-            resetToDefaultValues();
+            // Reset form values but keep the radio button selection
+            const form = $('#testConfigForm')[0];
+            const radioValue = $('input[name="testPreset"]:checked').val();
+            form.reset();
+            $('input[name="testPreset"][value="' + radioValue + '"]').prop('checked', true);
         } else {
             $('#customConfigSection').slideUp(300);
             applyPresetConfiguration(selectedPreset);
@@ -86,6 +90,10 @@ function applyPresetConfiguration(preset) {
         $('#connectionsPerSecond').val(config.connections_per_second);
         $('#cpsPacketSize').val(config.packet_size);
     }
+
+    // Disable validation on all custom fields when using presets
+    $('#customConfigSection input, #customConfigSection select').prop('required', false);
+    $('#throughputParams input, #cpsParams input').prop('required', false);
 
     // Update form visibility based on test type
     updateTestSpecificFields();
@@ -136,27 +144,36 @@ function updateTestSpecificFields() {
     const selectedPreset = $('input[name="testPreset"]:checked').val();
     const isCustom = selectedPreset === 'custom';
     
-    // First hide both parameter sections if not custom
+    // First handle preset vs custom mode
     if (!isCustom) {
+        // Hide and disable validation for all custom sections when using presets
         $('#throughputParams, #cpsParams').addClass('hidden');
+        $('#customConfigSection input, #customConfigSection select').prop('required', false);
+        $('#throughputParams input, #cpsParams input').prop('required', false);
         return;
     }
     
-    // Show appropriate section only for custom testconfiguration
+    // Show appropriate section only for custom test configuration
     if (testType === 'throughput') {
         $('#throughputParams').removeClass('hidden');
         $('#cpsParams').addClass('hidden');
         
-        // Make throughput fields required
+        // Enable validation for throughput fields, disable for CPS
         $('#bandwidth, #packetSize').prop('required', true);
-        $('#connectionsPerSecond, #concurrentConnections').prop('required', false);
+        $('#connectionsPerSecond, #cpsPacketSize').prop('required', false);
+        
+        // Enable other common fields
+        $('#testType, #testDuration, #snapshotInterval, #parallelSessions, #direction').prop('required', true);
     } else if (testType === 'cps') {
         $('#throughputParams').addClass('hidden');
         $('#cpsParams').removeClass('hidden');
         
-        // Make CPS fields required
+        // Enable validation for CPS fields, disable for throughput
         $('#bandwidth, #packetSize').prop('required', false);
-        $('#connectionsPerSecond, #concurrentConnections').prop('required', true);
+        $('#connectionsPerSecond, #cpsPacketSize').prop('required', true);
+        
+        // Enable other common fields
+        $('#testType, #testDuration, #snapshotInterval, #parallelSessions, #direction').prop('required', true);
     }
     
     updateConfigSummary();
