@@ -495,12 +495,14 @@ function updateServerStats(stats) {
     // Update server stats table
     const serverStatsTable = $('#serverStatsTable');
     if (serverStatsTable.length) {
+        let html = '';
+        
         // If array, show each timestamp as a row
         if (Array.isArray(stats) && stats.length > 0) {
             // Get all keys from the first entry (excluding Timestamp)
             const keys = Object.keys(stats[0]).filter(k => k !== 'Timestamp');
             
-            let html = '<table class="min-w-full divide-y divide-gray-700 border-collapse">';
+            html = '<table class="min-w-full divide-y divide-gray-700 border-collapse">';
             
             // Build header row with metric names - sticky header
             html += '<thead class="sticky top-0 z-10"><tr>';
@@ -591,12 +593,14 @@ function updateClientStats(stats) {
     // Update client stats table
     const clientStatsTable = $('#clientStatsTable');
     if (clientStatsTable.length) {
+        let html = '';
+        
         // If array, show each timestamp as a row
         if (Array.isArray(stats) && stats.length > 0) {
             // Get all keys from the first entry (excluding Timestamp)
             const keys = Object.keys(stats[0]).filter(k => k !== 'Timestamp');
             
-            let html = '<table class="min-w-full divide-y divide-gray-700 border-collapse">';
+            html = '<table class="min-w-full divide-y divide-gray-700 border-collapse">';
             
             // Build header row with metric names - sticky header
             html += '<thead class="sticky top-0 z-10"><tr>';
