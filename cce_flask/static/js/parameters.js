@@ -332,38 +332,103 @@ function submitTestConfig(event) {
     // Show progress modal
     $('#testProgressModal').removeClass('hidden');
     
-    // Get form data
-    const formData = new FormData($('#testConfigForm')[0]);
+    // Get form data and convert to JSON object
+    const formData = {};
     const selectedPreset = $('input[name="testPreset"]:checked').val();
     
-    // If using a preset, use those values instead of form values
+    // If using a preset, use those values
     if (selectedPreset !== 'custom') {
-        const config = TEST_PRESETS[selectedPreset];
-        for (const [key, value] of Object.entries(config)) {
-            formData.set(key, value);
+        Object.assign(formData, TEST_PRESETS[selectedPreset]);
+    } else {
+        // Get custom values
+        formData.test_type = $('#testType').val();
+        formData.duration = parseInt($('#testDuration').val());
+        formData.snapshot_interval = parseInt($('#snapshotInterval').val());
+        formData.parallel_sessions = parseInt($('#parallelSessions').val());
+        formData.direction = $('#direction').val();
+        formData.traffic_direction = $('#trafficDirection').val();
+        
+        if (formData.test_type === 'throughput') {
+            formData.bandwidth_mbps = parseInt($('#bandwidth').val());
+            formData.packet_size = parseInt($('#packetSize').val());
+        } else if (formData.test_type === 'cps') {
+            formData.connections_per_second = parseInt($('#connectionsPerSecond').val());
+            formData.packet_size = parseInt($('#cpsPacketSize').val());
         }
     }
     
-    // Make API call to start test
+    // Always include IP configurations regardless of preset/custom
+    formData.client_ip = $('#clientIP').val();
+    formData.client_bind = $('#clientBind').val() || null;
+    formData.server_ip = $('#serverIP').val();
+    formData.server_bind = $('#serverBind').val() || null;
+    
+    // Optional port configurations
+    const serverPort = $('#serverPort').val();
+    const clientPort = $('#clientPort').val();
+    if (serverPort) formData.server_port = parseInt(serverPort);
+    if (clientPort) formData.client_port = parseInt(clientPort);
+    
+    // Prepare server and client parameters
+    const serverParams = {
+        cps: formData.test_type === 'cps',
+        port: formData.server_port || 5202,
+        length: formData.packet_size ? `${formData.packet_size}` : '1k',
+        csv_stats: true,
+        bidi: formData.direction === 'bidirectional',
+        reverse: formData.traffic_direction === 'server_to_client',
+        bind: formData.server_bind
+    };
+
+    const clientParams = {
+        cps: formData.test_type === 'cps',
+        cps_rate_limit: formData.test_type === 'cps' ? `${formData.connections_per_second}/s` : undefined,
+        port: formData.client_port || 5202,
+        length: formData.packet_size ? `${formData.packet_size}` : '1k',
+        time: formData.duration,
+        csv_stats: true,
+        bitrate: formData.test_type === 'throughput' ? `${formData.bandwidth_mbps}M` : undefined,
+        parallel: formData.parallel_sessions,
+        reverse: formData.traffic_direction === 'server_to_client',
+        bidi: formData.direction === 'bidirectional',
+        interval: formData.snapshot_interval,
+        bind: formData.client_bind
+    };
+
+    // First start the server
     $.ajax({
-        url: '/api/start_test',
+        url: window.baseUrl + '/start_server',
         method: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-            // Handle success
-            showAlert('Test started successfully', 'success');
-            
-            // Update progress bar
-            updateTestProgress(response.test_id);
+        data: JSON.stringify({
+            server_ip: formData.server_ip,
+            params: serverParams
+        }),
+        contentType: 'application/json',
+        success: function(serverResponse) {
+            // Now start the client
+            $.ajax({
+                url: window.baseUrl + '/start_client',
+                method: 'POST',
+                data: JSON.stringify({
+                    test_id: serverResponse.test_id,
+                    server_ip: formData.server_ip,
+                    client_ip: formData.client_ip,
+                    params: clientParams
+                }),
+                contentType: 'application/json',
+                success: function(clientResponse) {
+                    showAlert('Test started successfully', 'success');
+                    updateTestProgress(serverResponse.test_id);
+                },
+                error: function(xhr) {
+                    $('#testProgressModal').addClass('hidden');
+                    showAlert('Failed to start client: ' + (xhr.responseJSON?.detail || 'Unknown error'), 'error');
+                }
+            });
         },
         error: function(xhr) {
-            // Hide progress modal
             $('#testProgressModal').addClass('hidden');
-            
-            // Show error
-            showAlert('Failed to start test: ' + (xhr.responseJSON?.message || 'Unknown error'), 'error');
+            showAlert('Failed to start server: ' + (xhr.responseJSON?.detail || 'Unknown error'), 'error');
         }
     });
 }
