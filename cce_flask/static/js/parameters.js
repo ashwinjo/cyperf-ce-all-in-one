@@ -397,7 +397,7 @@ function submitTestConfig(event) {
 
     // First start the server
     $.ajax({
-        url: window.baseUrl + '/start_server',
+        url: window.baseUrl + '/api/start_server',  // Updated to match OpenAPI spec
         method: 'POST',
         data: JSON.stringify({
             server_ip: formData.server_ip,
@@ -407,7 +407,7 @@ function submitTestConfig(event) {
         success: function(serverResponse) {
             // Now start the client
             $.ajax({
-                url: window.baseUrl + '/start_client',
+                url: window.baseUrl + '/api/start_client',  // Updated to match OpenAPI spec
                 method: 'POST',
                 data: JSON.stringify({
                     test_id: serverResponse.test_id,
@@ -451,14 +451,69 @@ function updateTestProgress(testId) {
         const remaining = Math.max(duration - elapsed, 0);
         $('#testTimeRemaining').text('Time remaining: ' + Math.round(remaining) + 's');
         
+        // Get current stats
+        $.ajax({
+            url: window.baseUrl + '/api/server/stats/' + testId,
+            method: 'GET',
+            success: function(serverStats) {
+                // Update server stats if available
+                if (serverStats) {
+                    updateServerStats(serverStats);
+                }
+            }
+        });
+        
+        $.ajax({
+            url: window.baseUrl + '/api/client/stats/' + testId,
+            method: 'GET',
+            success: function(clientStats) {
+                // Update client stats if available
+                if (clientStats) {
+                    updateClientStats(clientStats);
+                }
+            }
+        });
+        
         // If test is complete
         if (progress >= 100) {
             clearInterval(progressInterval);
             setTimeout(() => {
                 $('#testProgressModal').addClass('hidden');
                 $('#testResultsSection').removeClass('hidden');
-                // Here you would typically make an API call to get test results
-                // and update the results section
+                
+                // Get final stats
+                $.ajax({
+                    url: window.baseUrl + '/api/server/stats/' + testId,
+                    method: 'GET',
+                    success: function(finalServerStats) {
+                        updateServerStats(finalServerStats);
+                    }
+                });
+                
+                $.ajax({
+                    url: window.baseUrl + '/api/client/stats/' + testId,
+                    method: 'GET',
+                    success: function(finalClientStats) {
+                        updateClientStats(finalClientStats);
+                    }
+                });
+                
+                // Get logs
+                $.ajax({
+                    url: window.baseUrl + '/api/server/logs/' + testId,
+                    method: 'GET',
+                    success: function(serverLogs) {
+                        $('#serverLogsContent').text(serverLogs.content);
+                    }
+                });
+                
+                $.ajax({
+                    url: window.baseUrl + '/api/client/logs/' + testId,
+                    method: 'GET',
+                    success: function(clientLogs) {
+                        $('#clientLogsContent').text(clientLogs.content);
+                    }
+                });
             }, 1000);
         }
     }, 1000);
