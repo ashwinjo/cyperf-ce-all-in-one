@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, Dict
 
 class ServerParams(BaseModel):
@@ -8,7 +8,7 @@ class ServerParams(BaseModel):
     csv_stats: Optional[bool] = True
     bidi: bool = False
     reverse: bool = False
-    bind: Optional[str] = None
+    bind: Optional[str] = Field(default="", description="Bind to specific IP address (leave empty for default)")
 
 class ClientParams(BaseModel):
     cps: Optional[bool] = False
@@ -22,7 +22,7 @@ class ClientParams(BaseModel):
     reverse: bool = False
     bidi: bool = False
     interval: Optional[int] = None
-    bind: Optional[str] = None
+    bind: Optional[str] = Field(default="", description="Bind to specific IP address (leave empty for default)")
 
 class ServerRequest(BaseModel):
     server_ip: str
