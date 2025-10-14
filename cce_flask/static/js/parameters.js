@@ -325,4 +325,76 @@ function checkBackendStatus() {
     });
 }
 
-// Rest of your existing functions...
+// Function to handle form submission
+function submitTestConfig(event) {
+    event.preventDefault(); // Prevent form from submitting normally
+    
+    // Show progress modal
+    $('#testProgressModal').removeClass('hidden');
+    
+    // Get form data
+    const formData = new FormData($('#testConfigForm')[0]);
+    const selectedPreset = $('input[name="testPreset"]:checked').val();
+    
+    // If using a preset, use those values instead of form values
+    if (selectedPreset !== 'custom') {
+        const config = TEST_PRESETS[selectedPreset];
+        for (const [key, value] of Object.entries(config)) {
+            formData.set(key, value);
+        }
+    }
+    
+    // Make API call to start test
+    $.ajax({
+        url: '/api/start_test',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            // Handle success
+            showAlert('Test started successfully', 'success');
+            
+            // Update progress bar
+            updateTestProgress(response.test_id);
+        },
+        error: function(xhr) {
+            // Hide progress modal
+            $('#testProgressModal').addClass('hidden');
+            
+            // Show error
+            showAlert('Failed to start test: ' + (xhr.responseJSON?.message || 'Unknown error'), 'error');
+        }
+    });
+}
+
+// Function to update test progress
+function updateTestProgress(testId) {
+    let progress = 0;
+    const duration = parseInt($('#testDuration').val());
+    const startTime = Date.now();
+    
+    const progressInterval = setInterval(() => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        progress = Math.min((elapsed / duration) * 100, 100);
+        
+        // Update progress bar
+        $('#testProgressBar').css('width', progress + '%');
+        $('#progressText').text(Math.round(progress) + '%');
+        
+        // Update time remaining
+        const remaining = Math.max(duration - elapsed, 0);
+        $('#testTimeRemaining').text('Time remaining: ' + Math.round(remaining) + 's');
+        
+        // If test is complete
+        if (progress >= 100) {
+            clearInterval(progressInterval);
+            setTimeout(() => {
+                $('#testProgressModal').addClass('hidden');
+                $('#testResultsSection').removeClass('hidden');
+                // Here you would typically make an API call to get test results
+                // and update the results section
+            }, 1000);
+        }
+    }, 1000);
+}
