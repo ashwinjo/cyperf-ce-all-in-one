@@ -6,6 +6,7 @@ import csv
 import pandas as pd
 import matplotlib.pyplot as plt
 from io import BytesIO
+import time
 
 class CyperfService:
     def __init__(self):
@@ -29,7 +30,7 @@ class CyperfService:
         return ssh
 
     def start_server(self, test_id: str, server_ip: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        command = f"nohup sudo cyperf -s --detailed-stats"
+        command = f"nohup sudo -S cyperf -s --detailed-stats"
         if params.get("cps"):
             command += " --cps"
         if params.get("port"):
@@ -48,7 +49,16 @@ class CyperfService:
         command += f" {test_id}_server.csv > {test_id}_server.log 2>&1 &"
         print(command)
         ssh = self._connect_ssh(server_ip)
-        ssh.exec_command(command)
+        
+        # Execute command with password via stdin for sudo -S
+        stdin, stdout, stderr = ssh.exec_command(command)
+        if settings.SSH_PASSWORD:
+            stdin.write(settings.SSH_PASSWORD + '\n')
+            stdin.flush()
+        
+        # Give it a moment to start
+        time.sleep(1)
+        
         find_cmd = "ps -ef | grep 'cyperf -s' | grep root | awk '{print $2}'"
         _, stdout, _ = ssh.exec_command(find_cmd)
         pids = stdout.read().decode().strip().split('\n')
@@ -65,7 +75,7 @@ class CyperfService:
     def start_client(self, test_id: str, server_ip: str, client_ip: str, params: Dict[str, Any]) -> Dict[str, Any]:
         if test_id not in self.active_tests:
             raise Exception("Server not started for this test_id")
-        command = f"nohup sudo cyperf -c {server_ip} --detailed-stats"
+        command = f"nohup sudo -S cyperf -c {server_ip} --detailed-stats"
         # CPS and bitrate are mutually exclusive
         if params.get("cps"):
             # Handle CPS rate limit if provided
@@ -99,7 +109,16 @@ class CyperfService:
         command += f" {test_id}_client.csv > {test_id}_client.log 2>&1 &"
         print(command)    
         ssh = self._connect_ssh(client_ip)
-        ssh.exec_command(command)
+        
+        # Execute command with password via stdin for sudo -S
+        stdin, stdout, stderr = ssh.exec_command(command)
+        if settings.SSH_PASSWORD:
+            stdin.write(settings.SSH_PASSWORD + '\n')
+            stdin.flush()
+        
+        # Give it a moment to start
+        time.sleep(1)
+        
         find_cmd = "ps -ef | grep 'cyperf -c' | grep root | awk '{print $2}'"
         _, stdout, _ = ssh.exec_command(find_cmd)
         pids = stdout.read().decode().strip().split('\n')
@@ -115,10 +134,18 @@ class CyperfService:
 
     def stop_server(self, server_ip: str) -> Dict[str, Any]:
         ssh = self._connect_ssh(server_ip)
-        pids = "sudo ps aux | grep -i \"[c]yperf\|[s]erver\" | awk '{print $2}'"
-        ssh.exec_command(pids)
-        kill_cmd = "sudo ps aux | grep -i \"[c]yperf\|[s]erver\" | awk '{print $2}' | sudo xargs kill -9"
-        ssh.exec_command(kill_cmd)
+        pids = "sudo -S ps aux | grep -i \"[c]yperf\|[s]erver\" | awk '{print $2}'"
+        stdin, stdout, stderr = ssh.exec_command(pids)
+        if settings.SSH_PASSWORD:
+            stdin.write(settings.SSH_PASSWORD + '\n')
+            stdin.flush()
+        
+        kill_cmd = "sudo -S ps aux | grep -i \"[c]yperf\|[s]erver\" | awk '{print $2}' | sudo -S xargs kill -9"
+        stdin, stdout, stderr = ssh.exec_command(kill_cmd)
+        if settings.SSH_PASSWORD:
+            stdin.write(settings.SSH_PASSWORD + '\n')
+            stdin.flush()
+        
         ssh.close()
         return {"cyperf_server_pids_killed": "true", "server_ip": server_ip}
         
