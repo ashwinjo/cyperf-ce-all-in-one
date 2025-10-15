@@ -47,11 +47,12 @@ class CyperfService:
             cyperf_cmd += " --bidir"
         if params.get("reverse"):
             cyperf_cmd += " --reverse"
-        if params.get("csv_stats"):
-            cyperf_cmd += " --csv-stats"
+        # Add --bind BEFORE --csv-stats to ensure proper argument order
         bind_value = params.get("bind")
         if bind_value and str(bind_value).strip():
             cyperf_cmd += f" --bind {bind_value}"
+        if params.get("csv_stats"):
+            cyperf_cmd += " --csv-stats"
         cyperf_cmd += f" {test_id}_server.csv"
         
         # Pipe password into sudo command with nohup and backgrounding
@@ -114,11 +115,12 @@ class CyperfService:
             cyperf_cmd += " --bidir"
         if params.get("interval"):
             cyperf_cmd += f" --interval {params['interval']}"
-        if params.get("csv_stats"):
-            cyperf_cmd += " --csv-stats"
+        # Add --bind BEFORE --csv-stats to ensure proper argument order
         bind_value = params.get("bind")
         if bind_value and str(bind_value).strip():
             cyperf_cmd += f" --bind {bind_value}"
+        if params.get("csv_stats"):
+            cyperf_cmd += " --csv-stats"
         cyperf_cmd += f" {test_id}_client.csv"
         
         # Pipe password into sudo command with nohup and backgrounding
