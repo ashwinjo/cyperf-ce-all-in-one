@@ -403,7 +403,7 @@
                                     </h4>
                                     <div class="mt-1 border-b border-cyperf-red/30"></div>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="grid grid-cols-1 gap-6">
                                     <div class="relative">
                                         <label for="connectionsPerSecond" class="block text-sm font-medium text-gray-300 mb-1">Connections Per Second</label>
                                         <div class="relative rounded-lg shadow-sm">
@@ -421,24 +421,6 @@
                                                    max="100000">
                                         </div>
                                         <p class="mt-1 text-sm text-gray-400">Target CPS rate</p>
-                                    </div>
-                                    <div class="relative">
-                                        <label for="cpsPacketSize" class="block text-sm font-medium text-gray-300 mb-1">Packet Size (bytes)</label>
-                                        <div class="relative rounded-lg shadow-sm">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5.707 5.707a2 2 0 010 2.828l-7.707 7.707a2 2 0 01-2.828 0l-5.707-5.707A2 2 0 013 12.293V7a4 4 0 014-4z"/>
-                                                </svg>
-                                            </div>
-                                            <input type="number" 
-                                                   class="form-input block w-full pl-10 text-base rounded-lg bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-cyperf-red focus:border-transparent transition duration-150 ease-in-out h-12 shadow-sm" 
-                                                   id="cpsPacketSize" 
-                                                   name="cps_packet_size" 
-                                                   value="1500" 
-                                                   min="64" 
-                                                   max="9000">
-                                        </div>
-                                        <p class="mt-1 text-sm text-gray-400">Packet size in bytes (64-9000)</p>
                                     </div>
                                 </div>
                             </div>
@@ -799,13 +781,10 @@
 
                                 <!-- CPS Charts (hidden by default) -->
                                 <div id="cpsChartsContainer" class="space-y-6 hidden">
-                                    <div class="chart-container h-[250px]">
+                                    <div class="chart-container h-[400px]">
                                         <canvas id="clientConnectionsChart"></canvas>
                                     </div>
-                                    <div class="chart-container h-[250px]">
-                                        <canvas id="clientFailuresChart"></canvas>
-                                    </div>
-                                    <div class="chart-container h-[250px]">
+                                    <div class="chart-container h-[400px]">
                                         <canvas id="serverConnectionsChart"></canvas>
                                     </div>
                                 </div>

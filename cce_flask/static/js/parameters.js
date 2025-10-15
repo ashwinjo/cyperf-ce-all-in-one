@@ -61,9 +61,6 @@ $(document).ready(function() {
             $('#clientBind').val(savedValues.clientBind);
             $('#serverIP').val(savedValues.serverIP);
             $('#serverBind').val(savedValues.serverBind);
-
-            // Disable validation for cps_packet_size
-            $('#cpsPacketSize').prop('required', false);
         } else {
             $('#customConfigSection').slideUp(300);
             applyPresetConfiguration(selectedPreset);
@@ -129,7 +126,6 @@ function applyPresetConfiguration(preset) {
     // Disable validation on all custom fields when using presets
     $('#customConfigSection input, #customConfigSection select').prop('required', false);
     $('#throughputParams input, #cpsParams input').prop('required', false);
-    $('#cpsPacketSize').prop('required', false); // Explicitly disable validation for cps_packet_size
 
     // Update form visibility based on test type
     updateTestSpecificFields();
@@ -186,7 +182,6 @@ function updateTestSpecificFields() {
         $('#throughputParams, #cpsParams').addClass('hidden');
         $('#customConfigSection input, #customConfigSection select').prop('required', false);
         $('#throughputParams input, #cpsParams input').prop('required', false);
-        $('#cpsPacketSize').prop('required', false); // Always disable cps_packet_size validation
         return;
     }
     
@@ -198,7 +193,6 @@ function updateTestSpecificFields() {
         // Enable validation for throughput fields, disable for CPS
         $('#bandwidth, #packetSize').prop('required', true);
         $('#connectionsPerSecond').prop('required', false);
-        $('#cpsPacketSize').prop('required', false); // Always disable cps_packet_size validation
         
         // Enable other common fields
         $('#testType, #testDuration, #snapshotInterval, #parallelSessions, #direction').prop('required', true);
@@ -209,7 +203,6 @@ function updateTestSpecificFields() {
         // Enable validation for CPS fields, disable for throughput
         $('#bandwidth, #packetSize').prop('required', false);
         $('#connectionsPerSecond').prop('required', true);
-        $('#cpsPacketSize').prop('required', false); // Always disable cps_packet_size validation
         
         // Enable other common fields
         $('#testType, #testDuration, #snapshotInterval, #parallelSessions, #direction').prop('required', true);
@@ -275,7 +268,6 @@ function updateConfigSummary() {
         $('#summaryPacketSize').text(`${packetSize} bytes`);
     } else if (testType === 'cps') {
         const cps = $('#connectionsPerSecond').val();
-        const cpsPacketSize = $('#cpsPacketSize').val();
         
         // Show CPS fields, hide throughput fields
         $('#summaryBandwidthRow, #summaryPacketSizeRow').addClass('hidden');
@@ -353,7 +345,7 @@ function submitTestConfig(event) {
             formData.packet_size = parseInt($('#packetSize').val());
         } else if (formData.test_type === 'cps') {
             formData.connections_per_second = parseInt($('#connectionsPerSecond').val());
-            formData.packet_size = parseInt($('#cpsPacketSize').val());
+            formData.packet_size = 1; // CPS uses 1 byte packets
         }
     }
     

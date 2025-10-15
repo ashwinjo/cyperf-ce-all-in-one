@@ -2,7 +2,6 @@
 let clientThroughputChart = null;
 let serverThroughputChart = null;
 let clientConnectionsChart = null;
-let clientFailuresChart = null;
 let serverConnectionsChart = null;
 
 // Chart colors
@@ -218,11 +217,12 @@ function initCharts() {
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Client Throughput',
+                    label: 'Client - Throughput',
                     data: [],
                     borderColor: colors.client.primary,
                     backgroundColor: colors.client.secondary,
-                    fill: true
+                    fill: true,
+                    tension: 0.4
                 }]
             },
             options: {
@@ -231,7 +231,7 @@ function initCharts() {
                     ...throughputOptions.plugins,
                     title: {
                         ...throughputOptions.plugins.title,
-                        text: 'Client Throughput'
+                        text: 'Client Stats - Throughput'
                     }
                 }
             }
@@ -245,11 +245,12 @@ function initCharts() {
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Server Throughput',
+                    label: 'Server - Throughput',
                     data: [],
                     borderColor: colors.server.primary,
                     backgroundColor: colors.server.secondary,
-                    fill: true
+                    fill: true,
+                    tension: 0.4
                 }]
             },
             options: {
@@ -258,7 +259,7 @@ function initCharts() {
                     ...throughputOptions.plugins,
                     title: {
                         ...throughputOptions.plugins.title,
-                        text: 'Server Throughput'
+                        text: 'Server Stats - Throughput'
                     }
                 }
             }
@@ -273,11 +274,12 @@ function initCharts() {
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Connections Succeeded',
+                    label: 'Client - ConnectionsSucceeded',
                     data: [],
-                    borderColor: colors.success.primary,
-                    backgroundColor: colors.success.secondary,
-                    fill: true
+                    borderColor: colors.client.primary,
+                    backgroundColor: colors.client.secondary,
+                    fill: true,
+                    tension: 0.4
                 }]
             },
             options: {
@@ -286,34 +288,7 @@ function initCharts() {
                     ...cpsOptions.plugins,
                     title: {
                         ...cpsOptions.plugins.title,
-                        text: 'Client Connections Succeeded'
-                    }
-                }
-            }
-        });
-    }
-
-    const clientFailuresCtx = document.getElementById('clientFailuresChart');
-    if (clientFailuresCtx) {
-        clientFailuresChart = new Chart(clientFailuresCtx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Connections Failed',
-                    data: [],
-                    borderColor: colors.error.primary,
-                    backgroundColor: colors.error.secondary,
-                    fill: true
-                }]
-            },
-            options: {
-                ...cpsOptions,
-                plugins: {
-                    ...cpsOptions.plugins,
-                    title: {
-                        ...cpsOptions.plugins.title,
-                        text: 'Client Connection Failures'
+                        text: 'Client CPS Stats - ConnectionsSucceeded'
                     }
                 }
             }
@@ -327,11 +302,12 @@ function initCharts() {
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Connections Accepted',
+                    label: 'Server - ConnectionsAccepted',
                     data: [],
                     borderColor: colors.server.primary,
                     backgroundColor: colors.server.secondary,
-                    fill: true
+                    fill: true,
+                    tension: 0.4
                 }]
             },
             options: {
@@ -340,7 +316,7 @@ function initCharts() {
                     ...cpsOptions.plugins,
                     title: {
                         ...cpsOptions.plugins.title,
-                        text: 'Server Connections Accepted'
+                        text: 'Server CPS Stats - ConnectionsAccepted'
                     }
                 }
             }
@@ -395,18 +371,19 @@ function updateThroughputCharts(serverData, clientData) {
 
 // Update CPS charts
 function updateCPSCharts(serverData, clientData) {
-    // Use client timestamps for client charts, server timestamps for server chart
+    // Use client timestamps for client chart
     const clientTimestamps = clientData.map(stat => {
         const date = new Date(parseInt(stat.Timestamp) * 1000);
         return date.toLocaleTimeString();
     });
     
+    // Use server timestamps for server chart
     const serverTimestamps = serverData.map(stat => {
         const date = new Date(parseInt(stat.Timestamp) * 1000);
         return date.toLocaleTimeString();
     });
 
-    // Update client connections chart with client timestamps
+    // Update client connections chart with ConnectionsSucceeded
     if (clientConnectionsChart) {
         clientConnectionsChart.data.labels = clientTimestamps;
         clientConnectionsChart.data.datasets[0].data = clientData.map(stat => 
@@ -415,16 +392,7 @@ function updateCPSCharts(serverData, clientData) {
         clientConnectionsChart.update();
     }
 
-    // Update client failures chart with client timestamps
-    if (clientFailuresChart) {
-        clientFailuresChart.data.labels = clientTimestamps;
-        clientFailuresChart.data.datasets[0].data = clientData.map(stat => 
-            parseInt(stat.ConnectionsFailed || 0)
-        );
-        clientFailuresChart.update();
-    }
-
-    // Update server connections chart with server timestamps
+    // Update server connections chart with ConnectionsAccepted
     if (serverConnectionsChart) {
         serverConnectionsChart.data.labels = serverTimestamps;
         serverConnectionsChart.data.datasets[0].data = serverData.map(stat => 
@@ -440,7 +408,6 @@ function clearCharts() {
         clientThroughputChart,
         serverThroughputChart,
         clientConnectionsChart,
-        clientFailuresChart,
         serverConnectionsChart
     ].forEach(chart => {
         if (chart) {
