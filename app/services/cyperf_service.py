@@ -35,8 +35,8 @@ class CyperfService:
         return ssh
 
     def start_server(self, test_id: str, server_ip: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        # Build the cyperf command with full path
-        cyperf_cmd = "sudo /usr/local/bin/cyperf -s --detailed-stats"
+        # Build the cyperf command with full path (without sudo, we'll add it in the wrapper)
+        cyperf_cmd = "/usr/local/bin/cyperf -s --detailed-stats"
         if params.get("cps"):
             cyperf_cmd += " --cps"
         if params.get("port"):
@@ -62,7 +62,7 @@ class CyperfService:
             print(f"nohup bash -c \"echo '[REDACTED]' | sudo -S {cyperf_cmd}\" > {test_id}_server.log 2>&1 &")
         else:
             # If using SSH key auth, user might have passwordless sudo configured
-            command = f"nohup {cyperf_cmd} > {test_id}_server.log 2>&1 &"
+            command = f"nohup sudo {cyperf_cmd} > {test_id}_server.log 2>&1 &"
             print(command)
         ssh = self._connect_ssh(server_ip)
         ssh.exec_command(command)
@@ -87,8 +87,8 @@ class CyperfService:
         if test_id not in self.active_tests:
             raise Exception("Server not started for this test_id")
         
-        # Build the cyperf command with full path
-        cyperf_cmd = f"sudo /usr/local/bin/cyperf -c {server_ip} --detailed-stats"
+        # Build the cyperf command with full path (without sudo, we'll add it in the wrapper)
+        cyperf_cmd = f"/usr/local/bin/cyperf -c {server_ip} --detailed-stats"
         # CPS and bitrate are mutually exclusive
         if params.get("cps"):
             # Handle CPS rate limit if provided
@@ -129,7 +129,7 @@ class CyperfService:
             print(f"nohup bash -c \"echo '[REDACTED]' | sudo -S {cyperf_cmd}\" > {test_id}_client.log 2>&1 &")
         else:
             # If using SSH key auth, user might have passwordless sudo configured
-            command = f"nohup {cyperf_cmd} > {test_id}_client.log 2>&1 &"
+            command = f"nohup sudo {cyperf_cmd} > {test_id}_client.log 2>&1 &"
             print(command)    
         ssh = self._connect_ssh(client_ip)
         ssh.exec_command(command)
