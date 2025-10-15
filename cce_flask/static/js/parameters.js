@@ -702,11 +702,27 @@ function updateTestProgress(testId) {
                 $('#testProgressModal').addClass('hidden');
                 $('#testResultsSection').removeClass('hidden');
                 
+                // Populate Test ID and Duration
+                $('#resultTestId').text(testId);
+                $('#resultDuration').text($('#testDuration').val() + ' seconds');
+                
+                // Variables to store stats for chart update
+                let finalServerStats = null;
+                let finalClientStats = null;
+                
                 // Get final stats with error handling
                 $.ajax({
                     url: window.baseUrl + '/api/server/stats/' + testId,
                     method: 'GET',
-                    success: updateServerStats,
+                    success: function(serverStats) {
+                        finalServerStats = serverStats;
+                        updateServerStats(serverStats);
+                        
+                        // If both stats are loaded, update charts
+                        if (finalServerStats && finalClientStats) {
+                            updateChartsWithStats(finalServerStats, finalClientStats);
+                        }
+                    },
                     error: function(xhr) {
                         console.error('Failed to get final server stats:', xhr.status);
                         showAlert('Failed to retrieve server statistics', 'warning');
@@ -716,7 +732,15 @@ function updateTestProgress(testId) {
                 $.ajax({
                     url: window.baseUrl + '/api/client/stats/' + testId,
                     method: 'GET',
-                    success: updateClientStats,
+                    success: function(clientStats) {
+                        finalClientStats = clientStats;
+                        updateClientStats(clientStats);
+                        
+                        // If both stats are loaded, update charts
+                        if (finalServerStats && finalClientStats) {
+                            updateChartsWithStats(finalServerStats, finalClientStats);
+                        }
+                    },
                     error: function(xhr) {
                         console.error('Failed to get final client stats:', xhr.status);
                         showAlert('Failed to retrieve client statistics', 'warning');
@@ -728,11 +752,12 @@ function updateTestProgress(testId) {
                     url: window.baseUrl + '/api/server/logs/' + testId,
                     method: 'GET',
                     success: function(response) {
-                        $('#serverLogsContent').text(response.content || 'No logs available');
+                        const formattedLogs = formatLogs(response.content || '');
+                        $('#serverLogsContent').html(formattedLogs);
                     },
                     error: function(xhr) {
                         console.error('Failed to get server logs:', xhr.status);
-                        $('#serverLogsContent').text('Failed to retrieve server logs');
+                        $('#serverLogsContent').html('<p class="text-red-400">Failed to retrieve server logs</p>');
                     }
                 });
                 
@@ -740,11 +765,12 @@ function updateTestProgress(testId) {
                     url: window.baseUrl + '/api/client/logs/' + testId,
                     method: 'GET',
                     success: function(response) {
-                        $('#clientLogsContent').text(response.content || 'No logs available');
+                        const formattedLogs = formatLogs(response.content || '');
+                        $('#clientLogsContent').html(formattedLogs);
                     },
                     error: function(xhr) {
                         console.error('Failed to get client logs:', xhr.status);
-                        $('#clientLogsContent').text('Failed to retrieve client logs');
+                        $('#clientLogsContent').html('<p class="text-red-400">Failed to retrieve client logs</p>');
                     }
                 });
             }, 1000);
@@ -765,4 +791,161 @@ function showServerLogs() {
 // Function to close modal
 function closeModal(modalId) {
     $('#' + modalId).addClass('hidden');
+}
+
+// Function to update charts with stats data
+function updateChartsWithStats(serverStats, clientStats) {
+    // Determine if this is a CPS test based on test type
+    const testType = $('#testType').val();
+    const isConnectionTest = testType === 'cps';
+    
+    // Parse stats if they're strings
+    if (typeof serverStats === 'string') {
+        serverStats = JSON.parse(serverStats);
+    }
+    if (typeof clientStats === 'string') {
+        clientStats = JSON.parse(clientStats);
+    }
+    
+    // Ensure stats are arrays
+    if (!Array.isArray(serverStats)) {
+        serverStats = [serverStats];
+    }
+    if (!Array.isArray(clientStats)) {
+        clientStats = [clientStats];
+    }
+    
+    // Update charts using the global function from performance-charts.js
+    if (typeof window.updateCharts === 'function') {
+        window.updateCharts({
+            serverData: serverStats,
+            clientData: clientStats,
+            isConnectionTest: isConnectionTest
+        });
+    } else {
+        console.warn('updateCharts function not found. Make sure performance-charts.js is loaded.');
+    }
+}
+
+// Function to format logs with better styling
+function formatLogs(logContent) {
+    if (!logContent) return '<p class="text-gray-400">No logs available</p>';
+    
+    // Add log-container class for styling
+    let formattedLogs = `<div class="log-container">`;
+    
+    // Split by lines
+    const lines = logContent.split('\n');
+    let inTimestampSection = false;
+    let timestampBuffer = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Detect timestamp section start
+        if (line.includes('Timestamp:')) {
+            // Close previous section if exists
+            if (timestampBuffer.length > 0) {
+                formattedLogs += formatTimestampSection(timestampBuffer);
+                timestampBuffer = [];
+            }
+            inTimestampSection = true;
+            timestampBuffer.push(line);
+        }
+        // Detect section boundaries
+        else if (line.match(/^╭─+╮$/) || line.match(/^╰─+╯$/)) {
+            timestampBuffer.push(line);
+            if (line.match(/^╰─+╯$/)) {
+                // End of section
+                formattedLogs += formatTimestampSection(timestampBuffer);
+                timestampBuffer = [];
+                inTimestampSection = false;
+            }
+        }
+        // Regular lines
+        else {
+            if (inTimestampSection) {
+                timestampBuffer.push(line);
+            } else {
+                formattedLogs += formatLine(line) + '\n';
+            }
+        }
+    }
+    
+    // Handle any remaining buffer
+    if (timestampBuffer.length > 0) {
+        formattedLogs += formatTimestampSection(timestampBuffer);
+    }
+    
+    formattedLogs += '</div>';
+    return formattedLogs;
+}
+
+// Format individual timestamp sections
+function formatTimestampSection(lines) {
+    let html = '<div class="log-section">';
+    
+    for (const line of lines) {
+        if (line.includes('Timestamp:')) {
+            const timestamp = line.match(/Timestamp:\s*(.+)/)?.[1] || '';
+            html += `<div class="log-timestamp">📊 ${timestamp.trim()}</div>\n`;
+        } else if (line.includes('Basic Stats') || line.includes('Extended Stats')) {
+            html += `<div class="log-stat-header">${line.replace(/[│├─┤]/g, '').trim()}</div>\n`;
+        } else if (line.includes('│') && line.includes('│') && !line.match(/^[╭╰├─┤]+$/)) {
+            // Parse stat rows
+            const parts = line.split('│').filter(p => p.trim());
+            if (parts.length >= 2) {
+                const key = parts[0].trim();
+                const value = parts[1].trim();
+                
+                // Determine value class based on content
+                let valueClass = 'log-stat-value';
+                if (value.match(/error|failed|dropped|rst/i)) {
+                    valueClass += ' error-value';
+                } else if (value.match(/\d+\.\d+\s*(Gb\/s|Mb\/s)/)) {
+                    valueClass += ' high-value';
+                } else if (value.match(/\d+/)) {
+                    const num = parseInt(value);
+                    if (num > 0) valueClass += ' low-value';
+                }
+                
+                html += `<div class="log-stat-row">
+                    <span class="log-stat-key">${escapeHtml(key)}</span>
+                    <span class="${valueClass}">${escapeHtml(value)}</span>
+                </div>\n`;
+            } else {
+                html += `<span class="log-box">${escapeHtml(line)}</span>\n`;
+            }
+        } else {
+            html += `<span class="log-box">${escapeHtml(line)}</span>\n`;
+        }
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+// Format individual lines
+function formatLine(line) {
+    if (!line.trim()) return '';
+    
+    // Highlight important keywords
+    if (line.includes('Test Configuration Summary')) {
+        return `<div class="log-header">${escapeHtml(line)}</div>`;
+    } else if (line.includes('Test started')) {
+        return `<div class="text-green-400 font-bold">${escapeHtml(line)}</div>`;
+    } else if (line.includes('Test completed')) {
+        return `<div class="text-blue-400 font-bold">${escapeHtml(line)}</div>`;
+    } else if (line.match(/^-+$/)) {
+        return `<div class="text-gray-600">${escapeHtml(line)}</div>`;
+    }
+    
+    return escapeHtml(line);
+}
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
