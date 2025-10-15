@@ -498,8 +498,8 @@ function updateServerStats(stats) {
             
             // Build header row with metric names - sticky header
             html += '<thead class="sticky top-0 z-10"><tr>';
-            html += '<th class="px-3 py-2 text-center text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 sticky left-0 z-20">#</th>';
-            html += '<th class="px-3 py-2 text-left text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 sticky left-12 z-20">Timestamp</th>';
+            html += '<th class="px-3 py-2 text-center text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 sticky left-0 z-20 w-12">#</th>';
+            html += '<th class="px-3 py-2 text-left text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 sticky left-[48px] z-20 min-w-[120px]">Timestamp</th>';
             keys.forEach(key => {
                 html += `<th class="px-3 py-2 text-right text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 whitespace-nowrap">${key}</th>`;
             });
@@ -509,8 +509,8 @@ function updateServerStats(stats) {
             stats.forEach((entry, idx) => {
                 const time = new Date(parseInt(entry.Timestamp) * 1000).toLocaleTimeString();
                 html += '<tr class="transition-colors hover:bg-gray-700 border-b border-gray-800">';
-                html += `<td class="px-3 py-2 text-xs text-center text-gray-400 bg-gray-900 sticky left-0 z-10">${idx + 1}</td>`;
-                html += `<td class="px-3 py-2 text-xs text-left text-blue-400 whitespace-nowrap bg-gray-900 sticky left-12 z-10">${time}</td>`;
+                html += `<td class="px-3 py-2 text-xs text-center text-gray-400 bg-gray-900 sticky left-0 z-10 w-12">${idx + 1}</td>`;
+                html += `<td class="px-3 py-2 text-xs text-left text-blue-400 whitespace-nowrap bg-gray-900 sticky left-[48px] z-10 min-w-[120px]">${time}</td>`;
                 
                 keys.forEach(key => {
                     const value = parseFloat(entry[key]) || 0;
@@ -596,8 +596,8 @@ function updateClientStats(stats) {
             
             // Build header row with metric names - sticky header
             html += '<thead class="sticky top-0 z-10"><tr>';
-            html += '<th class="px-3 py-2 text-center text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 sticky left-0 z-20">#</th>';
-            html += '<th class="px-3 py-2 text-left text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 sticky left-12 z-20">Timestamp</th>';
+            html += '<th class="px-3 py-2 text-center text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 sticky left-0 z-20 w-12">#</th>';
+            html += '<th class="px-3 py-2 text-left text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 sticky left-[48px] z-20 min-w-[120px]">Timestamp</th>';
             keys.forEach(key => {
                 html += `<th class="px-3 py-2 text-right text-xs font-semibold text-white bg-gray-800 border-b border-gray-600 whitespace-nowrap">${key}</th>`;
             });
@@ -607,8 +607,8 @@ function updateClientStats(stats) {
             stats.forEach((entry, idx) => {
                 const time = new Date(parseInt(entry.Timestamp) * 1000).toLocaleTimeString();
                 html += '<tr class="transition-colors hover:bg-gray-700 border-b border-gray-800">';
-                html += `<td class="px-3 py-2 text-xs text-center text-gray-400 bg-gray-900 sticky left-0 z-10">${idx + 1}</td>`;
-                html += `<td class="px-3 py-2 text-xs text-left text-blue-400 whitespace-nowrap bg-gray-900 sticky left-12 z-10">${time}</td>`;
+                html += `<td class="px-3 py-2 text-xs text-center text-gray-400 bg-gray-900 sticky left-0 z-10 w-12">${idx + 1}</td>`;
+                html += `<td class="px-3 py-2 text-xs text-left text-blue-400 whitespace-nowrap bg-gray-900 sticky left-[48px] z-10 min-w-[120px]">${time}</td>`;
                 
                 keys.forEach(key => {
                     const value = parseFloat(entry[key]) || 0;
