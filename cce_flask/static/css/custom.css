@@ -169,3 +169,26 @@
 .log-collapsible-content.active {
     max-height: 2000px;
 }
+
+/* PDF Export Styling */
+@media print {
+    body {
+        background: white !important;
+    }
+    
+    .card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    
+    canvas {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+}
+
+/* Ensure charts render properly in PDF */
+.chart-container {
+    position: relative;
+    width: 100%;
+}

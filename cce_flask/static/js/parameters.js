@@ -660,33 +660,6 @@ function updateTestProgress(testId) {
         const remaining = Math.max(duration - elapsed, 0);
         $('#testTimeRemaining').text('Time remaining: ' + Math.round(remaining) + 's');
         
-        // Get current stats with error handling
-        $.ajax({
-            url: window.baseUrl + '/api/server/stats/' + testId,
-            method: 'GET',
-            success: function(serverStats) {
-                if (serverStats) {
-                    updateServerStats(serverStats);
-                }
-            },
-            error: function(xhr) {
-                console.log('Server stats not yet available:', xhr.status);
-            }
-        });
-        
-        $.ajax({
-            url: window.baseUrl + '/api/client/stats/' + testId,
-            method: 'GET',
-            success: function(clientStats) {
-                if (clientStats) {
-                    updateClientStats(clientStats);
-                }
-            },
-            error: function(xhr) {
-                console.log('Client stats not yet available:', xhr.status);
-            }
-        });
-        
         // If test is complete
         if (progress >= 100) {
             clearInterval(progressInterval);
@@ -940,4 +913,54 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Function to export test results to PDF
+function exportToPDF() {
+    // Show loading indicator
+    const exportBtn = $('#exportPDF');
+    const originalText = exportBtn.html();
+    exportBtn.html('<svg class="animate-spin h-5 w-5 mr-2 inline" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Generating PDF...');
+    exportBtn.prop('disabled', true);
+    
+    // Get the test results section
+    const element = document.getElementById('testResultsSection');
+    
+    // Get test ID and duration for filename
+    const testId = $('#resultTestId').text() || 'test';
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    const filename = `cyperf-test-${testId.substring(0, 8)}-${timestamp}.pdf`;
+    
+    // PDF options
+    const opt = {
+        margin: [10, 10, 10, 10],
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#1F2937'
+        },
+        jsPDF: { 
+            unit: 'mm', 
+            format: 'a4', 
+            orientation: 'portrait',
+            compress: true
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+    
+    // Generate PDF
+    html2pdf().set(opt).from(element).save().then(function() {
+        // Restore button state
+        exportBtn.html(originalText);
+        exportBtn.prop('disabled', false);
+        showAlert('PDF report generated successfully!', 'success');
+    }).catch(function(error) {
+        console.error('PDF generation error:', error);
+        exportBtn.html(originalText);
+        exportBtn.prop('disabled', false);
+        showAlert('Failed to generate PDF report. Please try again.', 'error');
+    });
 }
