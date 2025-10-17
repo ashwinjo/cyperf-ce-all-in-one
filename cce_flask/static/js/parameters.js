@@ -81,11 +81,7 @@ $(document).ready(function() {
         updateConfigSummary();
     });
     
-    // Check backend status on page load
-    checkBackendStatus();
-    
-    // Auto-refresh backend status every 30 seconds
-    setInterval(checkBackendStatus, 30000);
+    // Backend status banner removed - no longer checking backend health
 });
 
 // Function to apply preset configuration
@@ -276,45 +272,6 @@ function updateConfigSummary() {
         // Update values
         $('#summaryCPS').text(`${cps} conn/s`);
     }
-}
-
-// Function to check backend status.
-function checkBackendStatus() {
-    const apiUrl = window.baseUrl + '/docs';
-    
-    $.ajax({
-        url: '/health',  // This will proxy through Flask to check FastAPI
-        method: 'GET',
-        success: function(response) {
-            const indicator = $('#backendStatusIndicator');
-            const statusText = $('#backendStatusText');
-            const backendUrl = $('#backendUrl');
-            const lastChecked = $('#lastCheckedTime');
-            
-            if (response.status === 'healthy') {
-                indicator.removeClass('bg-yellow-500 bg-red-500').addClass('bg-green-500');
-                statusText.text('Connected');
-                backendUrl.text(apiUrl);
-            } else {
-                indicator.removeClass('bg-yellow-500 bg-green-500').addClass('bg-red-500');
-                statusText.text('Disconnected');
-                backendUrl.text('Not Available');
-            }
-            
-            lastChecked.text(new Date().toLocaleTimeString());
-        },
-        error: function() {
-            const indicator = $('#backendStatusIndicator');
-            const statusText = $('#backendStatusText');
-            const backendUrl = $('#backendUrl');
-            const lastChecked = $('#lastCheckedTime');
-            
-            indicator.removeClass('bg-yellow-500 bg-green-500').addClass('bg-red-500');
-            statusText.text('Connection Failed');
-            backendUrl.text('Not Available');
-            lastChecked.text(new Date().toLocaleTimeString());
-        }
-    });
 }
 
 // Function to handle form submission

@@ -4,37 +4,6 @@
 
 {% block content %}
 <div class="space-y-8" style="min-height: 100vh; display: flex; flex-direction: column;">
-    <!-- Backend Connection Status -->
-    <div id="backendStatusContainer" class="mb-6" style="display: block !important;">
-        <div class="bg-gray-800 border-2 border-cyperf-red rounded-lg p-4" style="background-color: #374151 !important; border-color: #DC3545 !important;">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="flex items-center space-x-2">
-                        <div id="backendStatusIndicator" class="w-4 h-4 rounded-full bg-yellow-500 animate-pulse" style="width: 16px !important; height: 16px !important;"></div>
-                        <span class="text-base font-semibold text-white" style="color: white !important; font-size: 16px !important;">🔗 Backend Connection Status</span>
-                    </div>
-                    <div class="text-base text-gray-300 font-medium" id="backendStatusText" style="color: #D1D5DB !important; font-size: 16px !important;">Checking...</div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <div class="text-sm text-gray-400" id="backendUrl" style="color: #9CA3AF !important;">-</div>
-                    <button type="button" 
-                            class="text-sm text-gray-400 hover:text-white transition-colors px-2 py-1 bg-gray-700 rounded" 
-                            onclick="checkBackendStatus()" 
-                            id="refreshBackendBtn"
-                            style="background-color: #4B5563 !important; color: #9CA3AF !important;">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-                        </svg>
-                        Refresh
-                    </button>
-                </div>
-            </div>
-            <div id="backendStatusDetails" class="mt-2 text-sm text-gray-400">
-                Last checked: <span id="lastCheckedTime">-</span>
-            </div>
-        </div>
-    </div>
-
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" style="flex: 1;">
         <!-- Configuration Form -->
         <div class="lg:col-span-2">
