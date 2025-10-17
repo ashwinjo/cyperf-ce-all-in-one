@@ -192,3 +192,9 @@
     position: relative;
     width: 100%;
 }
+
+/* API Call Badge - ensure it stays above chat widgets */
+#apiCallBadge {
+    z-index: 10001 !important;
+    position: absolute !important;
+}

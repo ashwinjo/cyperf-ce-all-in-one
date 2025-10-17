@@ -931,6 +931,30 @@ function exportToPDF() {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
     const filename = `cyperf-test-${testId.substring(0, 8)}-${timestamp}.pdf`;
     
+    // Temporarily hide all hidden chart containers to prevent rendering errors
+    const throughputContainer = document.getElementById('throughputChartsContainer');
+    const cpsContainer = document.getElementById('cpsChartsContainer');
+    const hiddenContainers = [];
+    
+    // Track which containers are hidden and temporarily remove them from DOM
+    if (throughputContainer && throughputContainer.classList.contains('hidden')) {
+        hiddenContainers.push({
+            element: throughputContainer,
+            parent: throughputContainer.parentNode,
+            nextSibling: throughputContainer.nextSibling
+        });
+        throughputContainer.remove();
+    }
+    
+    if (cpsContainer && cpsContainer.classList.contains('hidden')) {
+        hiddenContainers.push({
+            element: cpsContainer,
+            parent: cpsContainer.parentNode,
+            nextSibling: cpsContainer.nextSibling
+        });
+        cpsContainer.remove();
+    }
+    
     // PDF options
     const opt = {
         margin: [10, 10, 10, 10],
@@ -940,7 +964,18 @@ function exportToPDF() {
             scale: 2,
             useCORS: true,
             logging: false,
-            backgroundColor: '#1F2937'
+            backgroundColor: '#1F2937',
+            onclone: function(clonedDoc) {
+                // Ensure all visible canvases in the clone have proper dimensions
+                const canvases = clonedDoc.querySelectorAll('canvas');
+                canvases.forEach(canvas => {
+                    if (canvas.width === 0 || canvas.height === 0) {
+                        // Set minimum dimensions if canvas has zero size
+                        canvas.width = 800;
+                        canvas.height = 400;
+                    }
+                });
+            }
         },
         jsPDF: { 
             unit: 'mm', 
@@ -951,14 +986,33 @@ function exportToPDF() {
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
     
-    // Generate PDF
+    // Generate PDF with proper error handling
     html2pdf().set(opt).from(element).save().then(function() {
+        // Restore hidden containers
+        hiddenContainers.forEach(item => {
+            if (item.nextSibling) {
+                item.parent.insertBefore(item.element, item.nextSibling);
+            } else {
+                item.parent.appendChild(item.element);
+            }
+        });
+        
         // Restore button state
         exportBtn.html(originalText);
         exportBtn.prop('disabled', false);
         showAlert('PDF report generated successfully!', 'success');
     }).catch(function(error) {
         console.error('PDF generation error:', error);
+        
+        // Restore hidden containers even on error
+        hiddenContainers.forEach(item => {
+            if (item.nextSibling) {
+                item.parent.insertBefore(item.element, item.nextSibling);
+            } else {
+                item.parent.appendChild(item.element);
+            }
+        });
+        
         exportBtn.html(originalText);
         exportBtn.prop('disabled', false);
         showAlert('Failed to generate PDF report. Please try again.', 'error');
