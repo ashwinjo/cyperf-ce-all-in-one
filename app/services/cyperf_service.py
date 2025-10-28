@@ -18,20 +18,138 @@ class CyperfService:
         return arg.replace("'", "'\"'\"'")
 
     def _connect_ssh(self, hostname: str):
+        import os
+        
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        if settings.SSH_PASSWORD:
-            ssh.connect(
-                hostname=hostname,
-                username=settings.SSH_USERNAME,
-                password=settings.SSH_PASSWORD
-            )
-        else:
-            ssh.connect(
-                hostname=hostname,
-                username=settings.SSH_USERNAME,
-                key_filename=settings.SSH_KEY_PATH
-            )
+        
+        try:
+            if settings.SSH_PASSWORD:
+                print(f"Connecting to {hostname} with password authentication...")
+                ssh.connect(
+                    hostname=hostname,
+                    username=settings.SSH_USERNAME,
+                    password=settings.SSH_PASSWORD,
+                    timeout=10
+                )
+            else:
+                # Strip any quotes from the key path (common configuration error)
+                key_path = settings.SSH_KEY_PATH.strip().strip('"').strip("'")
+                
+                print(f"Connecting to {hostname} with key: {key_path}")
+                
+                # Validate the key path
+                if not os.path.exists(key_path):
+                    raise FileNotFoundError(
+                        f"SSH key file not found: {key_path} (original: {settings.SSH_KEY_PATH})"
+                    )
+                if os.path.isdir(key_path):
+                    raise IsADirectoryError(
+                        f"SSH_KEY_PATH points to a directory, not a file: {key_path}. "
+                        f"This usually happens when Docker volume mount fails. "
+                        f"Check your .env file: SSH_KEY_HOST_PATH should point to the actual key file."
+                    )
+                
+                # Check file permissions
+                stat_info = os.stat(key_path)
+                perms = oct(stat_info.st_mode)[-3:]
+                print(f"Key file permissions: {perms}")
+                
+                # Fix permissions if they're not secure enough
+                if perms != '600' and perms != '400':
+                    try:
+                        os.chmod(key_path, 0o600)
+                        print(f"Changed key file permissions to 600")
+                    except Exception as chmod_error:
+                        print(f"Warning: Could not change permissions: {chmod_error}")
+                
+                # Read and show key details
+                import hashlib
+                with open(key_path, 'r') as f:
+                    key_content = f.read()
+                    first_line = key_content.split('\n')[0].strip()
+                    print(f"Key format: {first_line}")
+                    print(f"Key file size: {len(key_content)} bytes")
+                    # Show checksum for verification
+                    key_hash = hashlib.md5(key_content.encode()).hexdigest()
+                    print(f"Key MD5 checksum: {key_hash}")
+                    # Show last few characters to verify it's complete
+                    last_line = key_content.strip().split('\n')[-1]
+                    print(f"Key ends with: {last_line}")
+                
+                # Try multiple approaches that worked in testing
+                connected = False
+                last_error = None
+                
+                # Approach 1: key_filename with look_for_keys=True (Approach 4 from test)
+                if not connected:
+                    try:
+                        print("Trying Approach 1: key_filename with look_for_keys=True")
+                        ssh.connect(
+                            hostname=hostname,
+                            username=settings.SSH_USERNAME,
+                            key_filename=key_path,
+                            look_for_keys=True,
+                            allow_agent=True,
+                            timeout=15
+                        )
+                        print(f"✓ Successfully connected using Approach 1")
+                        connected = True
+                    except Exception as e:
+                        last_error = e
+                        print(f"Approach 1 failed: {e}")
+                
+                # Approach 2: key_filename with look_for_keys=False (Approach 2 from test)
+                if not connected:
+                    try:
+                        print("Trying Approach 2: key_filename with look_for_keys=False")
+                        ssh = paramiko.SSHClient()
+                        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                        ssh.connect(
+                            hostname=hostname,
+                            username=settings.SSH_USERNAME,
+                            key_filename=key_path,
+                            look_for_keys=False,
+                            allow_agent=False,
+                            timeout=15
+                        )
+                        print(f"✓ Successfully connected using Approach 2")
+                        connected = True
+                    except Exception as e:
+                        last_error = e
+                        print(f"Approach 2 failed: {e}")
+                
+                # Approach 3: Direct pkey loading (Approach 1 from test)
+                if not connected:
+                    try:
+                        print("Trying Approach 3: Direct RSAKey loading")
+                        ssh = paramiko.SSHClient()
+                        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                        from io import StringIO
+                        pkey = paramiko.RSAKey.from_private_key(StringIO(key_content))
+                        ssh.connect(
+                            hostname=hostname,
+                            username=settings.SSH_USERNAME,
+                            pkey=pkey,
+                            look_for_keys=False,
+                            allow_agent=False,
+                            timeout=15
+                        )
+                        print(f"✓ Successfully connected using Approach 3")
+                        connected = True
+                    except Exception as e:
+                        last_error = e
+                        print(f"Approach 3 failed: {e}")
+                
+                if not connected:
+                    raise Exception(f"All connection approaches failed. Last error: {last_error}")
+        except paramiko.AuthenticationException as e:
+            print(f"Authentication failed for {hostname}: {e}")
+            raise Exception(f"SSH authentication failed for {hostname}. Check username and key/password.")
+        except Exception as e:
+            print(f"SSH connection error to {hostname}: {e}")
+            raise
+        
         return ssh
 
     def start_server(self, test_id: str, server_ip: str, params: Dict[str, Any]) -> Dict[str, Any]:
