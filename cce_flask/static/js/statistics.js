@@ -447,6 +447,9 @@ function getTestType(statsData) {
 function updateThroughputMetrics(statsData) {
     const statsHistory = statsData.stats_history || [];
     
+    console.log('updateThroughputMetrics called with:', statsData);
+    console.log('Stats history length:', statsHistory.length);
+    
     if (statsHistory.length === 0) {
         resetThroughputMetrics();
         return;
@@ -517,6 +520,13 @@ function updateThroughputMetrics(statsData) {
 function updateCPSMetrics(statsData) {
     const statsHistory = statsData.stats_history || [];
     
+    console.log('updateCPSMetrics called with:', statsData);
+    console.log('Stats history length:', statsHistory.length);
+    if (statsHistory.length > 0) {
+        console.log('First stats entry:', statsHistory[0]);
+        console.log('Last stats entry:', statsHistory[statsHistory.length - 1]);
+    }
+    
     if (statsHistory.length === 0) {
         resetCPSMetrics();
         return;
@@ -578,9 +588,22 @@ function updateCPSMetrics(statsData) {
     });
     
     // Calculate metrics
+    console.log('Client Connection Rates:', clientConnRates);
+    console.log('Server Connection Rates:', serverConnRates);
+    console.log('Client Failed Values:', clientFailedValues);
+    console.log('Server Failed Values:', serverFailedValues);
+    console.log('Client Latency Values:', clientLatencyValues);
+    console.log('Server Latency Values:', serverLatencyValues);
+    console.log('Client Success Last:', clientSuccessLast);
+    console.log('Server Success Last:', serverSuccessLast);
+    
     // 1. Average Connection Rate
-    $('#avgClientConnRate').text(formatConnectionRate(calculateAverage(clientConnRates)));
-    $('#avgServerConnRate').text(formatConnectionRate(calculateAverage(serverConnRates)));
+    const avgClientRate = calculateAverage(clientConnRates);
+    const avgServerRate = calculateAverage(serverConnRates);
+    console.log('Avg Client Rate:', avgClientRate);
+    console.log('Avg Server Rate:', avgServerRate);
+    $('#avgClientConnRate').text(formatConnectionRate(avgClientRate));
+    $('#avgServerConnRate').text(formatConnectionRate(avgServerRate));
     
     // 2. Total Connections Succeeded (last value)
     $('#clientConnSuccess').text(formatNumber(clientSuccessLast));
@@ -589,12 +612,18 @@ function updateCPSMetrics(statsData) {
     // 3. Total Connections Failed (sum of all values)
     const clientFailedSum = clientFailedValues.reduce((a, b) => a + b, 0);
     const serverFailedSum = serverFailedValues.reduce((a, b) => a + b, 0);
+    console.log('Client Failed Sum:', clientFailedSum);
+    console.log('Server Failed Sum:', serverFailedSum);
     $('#clientConnFailed').text(formatNumber(clientFailedSum));
     $('#serverConnFailed').text(formatNumber(serverFailedSum));
     
     // 4. Highest Connection Latency
-    $('#highestClientLatency').text(formatLatency(calculateMax(clientLatencyValues)));
-    $('#highestServerLatency').text(formatLatency(calculateMax(serverLatencyValues)));
+    const highestClientLatency = calculateMax(clientLatencyValues);
+    const highestServerLatency = calculateMax(serverLatencyValues);
+    console.log('Highest Client Latency:', highestClientLatency);
+    console.log('Highest Server Latency:', highestServerLatency);
+    $('#highestClientLatency').text(formatLatency(highestClientLatency));
+    $('#highestServerLatency').text(formatLatency(highestServerLatency));
 }
 
 function resetPerformanceMetrics() {
