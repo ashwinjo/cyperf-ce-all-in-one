@@ -345,6 +345,7 @@ class TestManager:
             'status': 'success',
             'test_id': test_id,
             'test_status': test_state.status.value,
+            'test_type': test_state.config.get('test_type', 'throughput'),
             'progress_percentage': test_state.progress_percentage,
             'elapsed_time': test_state.elapsed_time,
             'duration': test_state.duration,
@@ -375,6 +376,7 @@ class TestManager:
         return {
             'status': 'success',
             'test_id': test_id,
+            'test_type': test_state.config.get('test_type', 'throughput'),
             'current_stats': test_state.current_stats,
             'stats_history': test_state.stats_history[-50:],  # Last 50 data points
             'chart_data': self.data_processor.format_chart_data(test_state.stats_history[-50:])

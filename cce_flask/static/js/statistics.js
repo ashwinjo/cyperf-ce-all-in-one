@@ -3,6 +3,7 @@
 let currentSelectedTestId = null;
 let statisticsUpdateInterval = null;
 let performanceChart = null;
+let currentTestType = 'throughput'; // Default test type
 
 // Initialize page
 $(document).ready(function() {
@@ -168,6 +169,12 @@ function updateTestStatusDisplay(statusData) {
     const remaining = statusData.duration - (statusData.elapsed_time || 0);
     $('#currentTestRemaining').text(formatDuration(Math.max(0, remaining)));
     
+    // Update test type display and store it globally
+    if (statusData.test_type) {
+        currentTestType = statusData.test_type.toLowerCase();
+        $('#currentTestType').text(statusData.test_type.toUpperCase());
+    }
+    
     // Enable/disable cancel button
     const canCancel = ['running', 'starting_server', 'starting_client'].includes(statusData.test_status);
     $('#cancelTestBtn').prop('disabled', !canCancel);
@@ -186,9 +193,13 @@ function updateStatisticsDisplay(statsData) {
         
         // Update client stats  
         updateStatsPanel('client', currentStats.client_stats);
+        
+        // Update performance metrics based on test type
+        updatePerformanceMetrics(statsData);
     } else {
         // Show no data message
         resetStatsDisplay();
+        resetPerformanceMetrics();
     }
 }
 
@@ -383,6 +394,219 @@ function exportAllCharts() {
     } else {
         showAlert('Chart export not available', 'warning');
     }
+}
+
+// Performance Metrics Functions
+function updatePerformanceMetrics(statsData) {
+    // Determine test type from config or stats
+    const testType = getTestType(statsData);
+    
+    // Show/hide appropriate metrics section
+    if (testType === 'cps') {
+        $('#throughputMetrics').addClass('hidden');
+        $('#cpsMetrics').removeClass('hidden');
+        updateCPSMetrics(statsData);
+    } else {
+        $('#cpsMetrics').addClass('hidden');
+        $('#throughputMetrics').removeClass('hidden');
+        updateThroughputMetrics(statsData);
+    }
+}
+
+function getTestType(statsData) {
+    // First check if we have test_type directly in statsData
+    if (statsData.test_type) {
+        return statsData.test_type.toLowerCase();
+    }
+    
+    // Use the globally stored currentTestType
+    if (currentTestType) {
+        return currentTestType;
+    }
+    
+    // Check if stats contain CPS-specific fields
+    const statsHistory = statsData.stats_history || [];
+    if (statsHistory.length > 0) {
+        const latestStats = statsHistory[statsHistory.length - 1];
+        const clientStats = latestStats.client || [];
+        const serverStats = latestStats.server || [];
+        
+        // If we see ConnectionRate or ConnectionsSucceeded, it's a CPS test
+        if (clientStats.length > 0 && (clientStats[0].ConnectionRate || clientStats[0].ConnectionsSucceeded)) {
+            return 'cps';
+        }
+        if (serverStats.length > 0 && (serverStats[0].ConnectionRate || serverStats[0].ConnectionsAccepted)) {
+            return 'cps';
+        }
+    }
+    
+    // Default to throughput
+    return 'throughput';
+}
+
+function updateThroughputMetrics(statsData) {
+    const statsHistory = statsData.stats_history || [];
+    
+    if (statsHistory.length === 0) {
+        resetThroughputMetrics();
+        return;
+    }
+    
+    let clientRxValues = [];
+    let clientTxValues = [];
+    let serverRxValues = [];
+    let serverTxValues = [];
+    let clientLatencyValues = [];
+    let serverLatencyValues = [];
+    
+    // Process stats history
+    statsHistory.forEach(entry => {
+        const clientStats = entry.client || [];
+        const serverStats = entry.server || [];
+        
+        // Process client stats
+        clientStats.forEach(stat => {
+            if (stat.Throughput) {
+                const throughputMbps = parseFloat(stat.Throughput) / 1000000;
+                // In iperf3, for client: Rx is receiving from server, Tx is sending to server
+                // The Throughput field represents the current throughput
+                clientRxValues.push(throughputMbps);
+                clientTxValues.push(throughputMbps);
+            }
+            if (stat.MeanRTT) {
+                clientLatencyValues.push(parseFloat(stat.MeanRTT) / 1000); // Convert to ms
+            }
+        });
+        
+        // Process server stats
+        serverStats.forEach(stat => {
+            if (stat.Throughput) {
+                const throughputMbps = parseFloat(stat.Throughput) / 1000000;
+                serverRxValues.push(throughputMbps);
+                serverTxValues.push(throughputMbps);
+            }
+            if (stat.MeanRTT) {
+                serverLatencyValues.push(parseFloat(stat.MeanRTT) / 1000); // Convert to ms
+            }
+        });
+    });
+    
+    // Calculate averages and peaks
+    $('#avgClientRx').text(formatThroughput(calculateAverage(clientRxValues)));
+    $('#avgClientTx').text(formatThroughput(calculateAverage(clientTxValues)));
+    $('#avgServerRx').text(formatThroughput(calculateAverage(serverRxValues)));
+    $('#avgServerTx').text(formatThroughput(calculateAverage(serverTxValues)));
+    
+    $('#peakClientRx').text(formatThroughput(calculateMax(clientRxValues)));
+    $('#peakClientTx').text(formatThroughput(calculateMax(clientTxValues)));
+    $('#peakServerRx').text(formatThroughput(calculateMax(serverRxValues)));
+    $('#peakServerTx').text(formatThroughput(calculateMax(serverTxValues)));
+    
+    $('#avgClientLatency').text(formatLatency(calculateAverage(clientLatencyValues)));
+    $('#avgServerLatency').text(formatLatency(calculateAverage(serverLatencyValues)));
+}
+
+function updateCPSMetrics(statsData) {
+    const statsHistory = statsData.stats_history || [];
+    
+    if (statsHistory.length === 0) {
+        resetCPSMetrics();
+        return;
+    }
+    
+    let clientConnRates = [];
+    let serverConnRates = [];
+    let clientSuccessTotal = 0;
+    let serverSuccessTotal = 0;
+    let clientFailedTotal = 0;
+    let serverFailedTotal = 0;
+    
+    // Process stats history
+    statsHistory.forEach(entry => {
+        const clientStats = entry.client || [];
+        const serverStats = entry.server || [];
+        
+        // Process client stats
+        clientStats.forEach(stat => {
+            if (stat.ConnectionRate) {
+                clientConnRates.push(parseFloat(stat.ConnectionRate));
+            }
+            if (stat.ConnectionsSucceeded) {
+                clientSuccessTotal = Math.max(clientSuccessTotal, parseInt(stat.ConnectionsSucceeded));
+            }
+            if (stat.ConnectionsFailed) {
+                clientFailedTotal = Math.max(clientFailedTotal, parseInt(stat.ConnectionsFailed));
+            }
+        });
+        
+        // Process server stats
+        serverStats.forEach(stat => {
+            if (stat.ConnectionRate) {
+                serverConnRates.push(parseFloat(stat.ConnectionRate));
+            }
+            if (stat.ConnectionsAccepted) {
+                serverSuccessTotal = Math.max(serverSuccessTotal, parseInt(stat.ConnectionsAccepted));
+            }
+            if (stat.ConnectionsFailed) {
+                serverFailedTotal = Math.max(serverFailedTotal, parseInt(stat.ConnectionsFailed));
+            }
+        });
+    });
+    
+    // Update UI
+    $('#avgClientConnRate').text(formatConnectionRate(calculateAverage(clientConnRates)));
+    $('#avgServerConnRate').text(formatConnectionRate(calculateAverage(serverConnRates)));
+    
+    $('#clientConnSuccess').text(formatNumber(clientSuccessTotal));
+    $('#serverConnSuccess').text(formatNumber(serverSuccessTotal));
+    
+    $('#clientConnFailed').text(formatNumber(clientFailedTotal));
+    $('#serverConnFailed').text(formatNumber(serverFailedTotal));
+}
+
+function resetPerformanceMetrics() {
+    resetThroughputMetrics();
+    resetCPSMetrics();
+}
+
+function resetThroughputMetrics() {
+    $('#avgClientRx, #avgClientTx, #avgServerRx, #avgServerTx').text('0 Mbps');
+    $('#peakClientRx, #peakClientTx, #peakServerRx, #peakServerTx').text('0 Mbps');
+    $('#avgClientLatency, #avgServerLatency').text('0 ms');
+}
+
+function resetCPSMetrics() {
+    $('#avgClientConnRate, #avgServerConnRate').text('0 /s');
+    $('#clientConnSuccess, #serverConnSuccess').text('0');
+    $('#clientConnFailed, #serverConnFailed').text('0');
+}
+
+// Helper functions
+function calculateAverage(values) {
+    if (values.length === 0) return 0;
+    const sum = values.reduce((a, b) => a + b, 0);
+    return sum / values.length;
+}
+
+function calculateMax(values) {
+    if (values.length === 0) return 0;
+    return Math.max(...values);
+}
+
+function formatThroughput(value) {
+    return value.toFixed(2) + ' Mbps';
+}
+
+function formatLatency(value) {
+    return value.toFixed(2) + ' ms';
+}
+
+function formatConnectionRate(value) {
+    return value.toFixed(0) + ' /s';
+}
+
+function formatNumber(value) {
+    return value.toLocaleString();
 }
 
 // Clean up on page unload
