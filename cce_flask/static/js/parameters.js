@@ -306,6 +306,10 @@ function submitTestConfig(event) {
         }
     }
     
+    // Store the test type for metrics display
+    lastRunTestType = formData.test_type;
+    console.log('Test submitted with type:', lastRunTestType);
+    
     // Always include IP configurations regardless of preset/custom
     formData.client_ip = $('#clientIP').val();
     formData.client_bind = $('#clientBind').val() || null;
@@ -1034,27 +1038,31 @@ function exportToPDF() {
 
 // Track current test type to avoid unnecessary DOM updates
 let currentMetricsType = null;
+let lastRunTestType = null; // Store the test type from the form
 
 // Helper function to detect test type and show appropriate metrics
 function detectAndShowMetricsType(stats, source) {
     if (!stats || !Array.isArray(stats) || stats.length === 0) return;
     
-    // Check if this is a CPS test by looking for CPS-specific fields
-    const firstEntry = stats[0];
-    const isCPSTest = firstEntry.hasOwnProperty('ConnectionRate') || 
-                       firstEntry.hasOwnProperty('ConnectionsSucceeded') ||
-                       firstEntry.hasOwnProperty('ConnectionsAccepted');
+    // Use the test type from the form selection instead of trying to detect from data
+    // This is much more reliable since both test types have similar data structures
+    const formTestType = $('#testType').val();
+    const testType = lastRunTestType || formTestType || 'throughput';
     
-    const detectedType = isCPSTest ? 'cps' : 'throughput';
-    
-    console.log('detectAndShowMetricsType:', { source, isCPSTest, detectedType, currentMetricsType });
+    console.log('detectAndShowMetricsType:', { 
+        source, 
+        testType, 
+        formTestType, 
+        lastRunTestType,
+        currentMetricsType 
+    });
     
     // Only update DOM if the test type has changed
-    if (currentMetricsType !== detectedType) {
-        console.log('Switching metrics display from', currentMetricsType, 'to', detectedType);
-        currentMetricsType = detectedType;
+    if (currentMetricsType !== testType) {
+        console.log('Switching metrics display from', currentMetricsType, 'to', testType);
+        currentMetricsType = testType;
         
-        if (isCPSTest) {
+        if (testType === 'cps') {
             $('#throughputMetrics').addClass('hidden');
             $('#cpsMetrics').removeClass('hidden');
         } else {
@@ -1064,7 +1072,7 @@ function detectAndShowMetricsType(stats, source) {
     }
     
     // Update metrics data
-    if (isCPSTest) {
+    if (testType === 'cps') {
         updateCPSMetrics(stats, source);
     }
     // Throughput metrics are already updated by updateServerStats/updateClientStats
