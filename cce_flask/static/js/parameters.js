@@ -404,6 +404,8 @@ function formatNumber(num, unit) {
 function updateServerStats(stats) {
     if (!stats) return;
 
+    console.log('updateServerStats called with:', stats);
+
     try {
         // Parse stats if it's a string
         if (typeof stats === 'string') {
@@ -416,6 +418,8 @@ function updateServerStats(stats) {
         }
         
         if (stats.length === 0) return;
+        
+        console.log('Server stats first entry keys:', Object.keys(stats[0]));
 
         // Collect all throughput values for average and peak calculation
         let throughputValues = [];
@@ -526,6 +530,8 @@ function updateServerStats(stats) {
 function updateClientStats(stats) {
     if (!stats) return;
 
+    console.log('updateClientStats called with:', stats);
+
     try {
         // Parse stats if it's a string
         if (typeof stats === 'string') {
@@ -538,6 +544,8 @@ function updateClientStats(stats) {
         }
         
         if (stats.length === 0) return;
+        
+        console.log('Client stats first entry keys:', Object.keys(stats[0]));
 
         // Collect all throughput values for average and peak calculation
         let throughputValues = [];
@@ -1037,6 +1045,7 @@ function detectAndShowMetricsType(stats) {
     if (isCPSTest) {
         $('#throughputMetrics').addClass('hidden');
         $('#cpsMetrics').removeClass('hidden');
+        // Update CPS metrics for this specific stats array
         updateCPSMetrics(stats);
     } else {
         $('#cpsMetrics').addClass('hidden');
@@ -1083,16 +1092,26 @@ function updateCPSMetrics(stats) {
         const highestLatency = latencyValues.length > 0 ? Math.max(...latencyValues) : 0;
         
         // Determine if this is server or client stats
+        // Server has ConnectionsAccepted, Client has ConnectionsSucceeded
         const isServerStats = stats[0].hasOwnProperty('ConnectionsAccepted');
         const className = isServerStats ? '.text-cyperf-red' : '.text-yellow-500';
         const prefix = isServerStats ? 'Server: ' : 'Client: ';
         
-        // Update UI
+        console.log('updateCPSMetrics called:', {
+            isServerStats,
+            avgConnRate,
+            successLast,
+            failedSum,
+            highestLatency,
+            firstEntry: stats[0]
+        });
+        
+        // Update UI - select the specific div inside each metric container
         $(`#avgConnRate ${className}`).text(prefix + avgConnRate.toFixed(2) + ' /s');
         $(`#totalConnSuccess ${className}`).text(prefix + successLast.toLocaleString());
         $(`#totalConnFailed ${className}`).text(prefix + failedSum.toLocaleString());
         $(`#highestConnLatency ${className}`).text(prefix + highestLatency.toFixed(2) + ' ms');
     } catch (e) {
-        console.error('Error parsing CPS stats:', e);
+        console.error('Error parsing CPS stats:', e, stats);
     }
 }
