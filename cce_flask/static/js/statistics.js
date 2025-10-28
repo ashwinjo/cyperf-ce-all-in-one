@@ -452,10 +452,8 @@ function updateThroughputMetrics(statsData) {
         return;
     }
     
-    let clientRxValues = [];
-    let clientTxValues = [];
-    let serverRxValues = [];
-    let serverTxValues = [];
+    let clientThroughputValues = [];
+    let serverThroughputValues = [];
     let clientLatencyValues = [];
     let serverLatencyValues = [];
     
@@ -466,42 +464,52 @@ function updateThroughputMetrics(statsData) {
         
         // Process client stats
         clientStats.forEach(stat => {
-            if (stat.Throughput) {
+            // Collect Throughput values (in bps, convert to Mbps)
+            if (stat.Throughput !== undefined && stat.Throughput !== null) {
                 const throughputMbps = parseFloat(stat.Throughput) / 1000000;
-                // In iperf3, for client: Rx is receiving from server, Tx is sending to server
-                // The Throughput field represents the current throughput
-                clientRxValues.push(throughputMbps);
-                clientTxValues.push(throughputMbps);
+                clientThroughputValues.push(throughputMbps);
             }
-            if (stat.MeanRTT) {
-                clientLatencyValues.push(parseFloat(stat.MeanRTT) / 1000); // Convert to ms
+            // Collect AverageConnectionLatency values (in microseconds, convert to ms)
+            if (stat.AverageConnectionLatency !== undefined && stat.AverageConnectionLatency !== null) {
+                clientLatencyValues.push(parseFloat(stat.AverageConnectionLatency) / 1000);
             }
         });
         
         // Process server stats
         serverStats.forEach(stat => {
-            if (stat.Throughput) {
+            // Collect Throughput values (in bps, convert to Mbps)
+            if (stat.Throughput !== undefined && stat.Throughput !== null) {
                 const throughputMbps = parseFloat(stat.Throughput) / 1000000;
-                serverRxValues.push(throughputMbps);
-                serverTxValues.push(throughputMbps);
+                serverThroughputValues.push(throughputMbps);
             }
-            if (stat.MeanRTT) {
-                serverLatencyValues.push(parseFloat(stat.MeanRTT) / 1000); // Convert to ms
+            // Collect AverageConnectionLatency values (in microseconds, convert to ms)
+            if (stat.AverageConnectionLatency !== undefined && stat.AverageConnectionLatency !== null) {
+                serverLatencyValues.push(parseFloat(stat.AverageConnectionLatency) / 1000);
             }
         });
     });
     
-    // Calculate averages and peaks
-    $('#avgClientRx').text(formatThroughput(calculateAverage(clientRxValues)));
-    $('#avgClientTx').text(formatThroughput(calculateAverage(clientTxValues)));
-    $('#avgServerRx').text(formatThroughput(calculateAverage(serverRxValues)));
-    $('#avgServerTx').text(formatThroughput(calculateAverage(serverTxValues)));
+    // Calculate average throughput from all Throughput values
+    const avgClientThroughput = calculateAverage(clientThroughputValues);
+    const avgServerThroughput = calculateAverage(serverThroughputValues);
     
-    $('#peakClientRx').text(formatThroughput(calculateMax(clientRxValues)));
-    $('#peakClientTx').text(formatThroughput(calculateMax(clientTxValues)));
-    $('#peakServerRx').text(formatThroughput(calculateMax(serverRxValues)));
-    $('#peakServerTx').text(formatThroughput(calculateMax(serverTxValues)));
+    // Calculate peak throughput (maximum value from all Throughput values)
+    const peakClientThroughput = calculateMax(clientThroughputValues);
+    const peakServerThroughput = calculateMax(serverThroughputValues);
     
+    // For display purposes, show the same value for Rx and Tx
+    // (since Throughput represents bidirectional throughput)
+    $('#avgClientRx').text(formatThroughput(avgClientThroughput));
+    $('#avgClientTx').text(formatThroughput(avgClientThroughput));
+    $('#avgServerRx').text(formatThroughput(avgServerThroughput));
+    $('#avgServerTx').text(formatThroughput(avgServerThroughput));
+    
+    $('#peakClientRx').text(formatThroughput(peakClientThroughput));
+    $('#peakClientTx').text(formatThroughput(peakClientThroughput));
+    $('#peakServerRx').text(formatThroughput(peakServerThroughput));
+    $('#peakServerTx').text(formatThroughput(peakServerThroughput));
+    
+    // Calculate and display average latency
     $('#avgClientLatency').text(formatLatency(calculateAverage(clientLatencyValues)));
     $('#avgServerLatency').text(formatLatency(calculateAverage(serverLatencyValues)));
 }
