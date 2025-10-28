@@ -467,7 +467,7 @@ function updateServerStats(stats) {
     }
 
     // Detect test type and show/hide appropriate metrics
-    detectAndShowMetricsType(stats);
+    detectAndShowMetricsType(stats, 'server');
     
     // Update server stats table
     const serverStatsTable = $('#serverStatsTable');
@@ -593,7 +593,7 @@ function updateClientStats(stats) {
     }
 
     // Detect test type and show/hide appropriate metrics (do this only once for client)
-    detectAndShowMetricsType(stats);
+    detectAndShowMetricsType(stats, 'client');
     
     // Update client stats table
     const clientStatsTable = $('#clientStatsTable');
@@ -1033,7 +1033,7 @@ function exportToPDF() {
 }
 
 // Helper function to detect test type and show appropriate metrics
-function detectAndShowMetricsType(stats) {
+function detectAndShowMetricsType(stats, source) {
     if (!stats || !Array.isArray(stats) || stats.length === 0) return;
     
     // Check if this is a CPS test by looking for CPS-specific fields
@@ -1042,11 +1042,13 @@ function detectAndShowMetricsType(stats) {
                        firstEntry.hasOwnProperty('ConnectionsSucceeded') ||
                        firstEntry.hasOwnProperty('ConnectionsAccepted');
     
+    console.log('detectAndShowMetricsType:', { source, isCPSTest });
+    
     if (isCPSTest) {
         $('#throughputMetrics').addClass('hidden');
         $('#cpsMetrics').removeClass('hidden');
-        // Update CPS metrics for this specific stats array
-        updateCPSMetrics(stats);
+        // Update CPS metrics for this specific stats array, passing the source
+        updateCPSMetrics(stats, source);
     } else {
         $('#cpsMetrics').addClass('hidden');
         $('#throughputMetrics').removeClass('hidden');
@@ -1055,7 +1057,7 @@ function detectAndShowMetricsType(stats) {
 }
 
 // Function to update CPS metrics in the UI
-function updateCPSMetrics(stats) {
+function updateCPSMetrics(stats, source) {
     if (!stats || !Array.isArray(stats) || stats.length === 0) return;
     
     try {
@@ -1091,19 +1093,18 @@ function updateCPSMetrics(stats) {
         const failedSum = failedValues.reduce((a, b) => a + b, 0);
         const highestLatency = latencyValues.length > 0 ? Math.max(...latencyValues) : 0;
         
-        // Determine if this is server or client stats
-        // Server has ConnectionsAccepted, Client has ConnectionsSucceeded
-        const isServerStats = stats[0].hasOwnProperty('ConnectionsAccepted');
+        // Use the source parameter to determine which stats these are
+        const isServerStats = (source === 'server');
         const className = isServerStats ? '.text-cyperf-red' : '.text-yellow-500';
         const prefix = isServerStats ? 'Server: ' : 'Client: ';
         
         console.log('updateCPSMetrics called:', {
+            source,
             isServerStats,
             avgConnRate,
             successLast,
             failedSum,
-            highestLatency,
-            firstEntry: stats[0]
+            highestLatency
         });
         
         // Update UI - select the specific div inside each metric container
