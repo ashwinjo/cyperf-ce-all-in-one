@@ -410,33 +410,54 @@ function updateServerStats(stats) {
             stats = JSON.parse(stats);
         }
 
-        // Handle array format - use the latest entry for summary
-        let latestStats = stats;
-        if (Array.isArray(stats)) {
-            if (stats.length === 0) return;
-            latestStats = stats[stats.length - 1]; // Get the most recent entry
+        // Ensure it's an array
+        if (!Array.isArray(stats)) {
+            stats = [stats];
         }
+        
+        if (stats.length === 0) return;
 
-        // Extract throughput from Throughput field
-        const throughput = parseFloat(latestStats.Throughput) || 0;
-        const throughputTX = parseFloat(latestStats.ThroughputTX) || 0;
-        const throughputRX = parseFloat(latestStats.ThroughputRX) || 0;
+        // Collect all throughput values for average and peak calculation
+        let throughputValues = [];
+        let throughputTXValues = [];
+        let throughputRXValues = [];
+        let latencyValues = [];
+        
+        stats.forEach(entry => {
+            if (entry.Throughput !== undefined && entry.Throughput !== null) {
+                throughputValues.push(parseFloat(entry.Throughput));
+            }
+            if (entry.ThroughputTX !== undefined && entry.ThroughputTX !== null) {
+                throughputTXValues.push(parseFloat(entry.ThroughputTX));
+            }
+            if (entry.ThroughputRX !== undefined && entry.ThroughputRX !== null) {
+                throughputRXValues.push(parseFloat(entry.ThroughputRX));
+            }
+            if (entry.AverageConnectionLatency !== undefined && entry.AverageConnectionLatency !== null) {
+                latencyValues.push(parseFloat(entry.AverageConnectionLatency));
+            }
+        });
+        
+        // Calculate average throughput
+        const avgThroughput = throughputValues.length > 0 ? 
+            throughputValues.reduce((a, b) => a + b, 0) / throughputValues.length : 0;
+        
+        // Calculate peak throughput
+        const peakTX = throughputTXValues.length > 0 ? Math.max(...throughputTXValues) : 0;
+        const peakRX = throughputRXValues.length > 0 ? Math.max(...throughputRXValues) : 0;
+        
+        // Calculate average latency (in microseconds, convert to ms)
+        const avgLatency = latencyValues.length > 0 ? 
+            (latencyValues.reduce((a, b) => a + b, 0) / latencyValues.length) / 1000 : 0;
         
         // Update throughput displays
-        $('#avgThroughput .text-cyperf-red').text('Server: ' + formatNumber(throughput, 'bps'));
+        $('#avgThroughput .text-cyperf-red').text('Server: ' + formatNumber(avgThroughput, 'bps'));
         $('#peakThroughput .text-cyperf-red').text('Server TX/RX: ' + 
-            formatNumber(throughputTX, 'bps') + ' / ' + 
-            formatNumber(throughputRX, 'bps'));
+            formatNumber(peakTX, 'bps') + ' / ' + 
+            formatNumber(peakRX, 'bps'));
 
-        // Extract and display CPS/Connection data if available
-        const tcpDataThroughput = parseFloat(latestStats.TCPDataThroughput) || 0;
-        const connectionRate = parseFloat(latestStats.ConnectionRate) || 0;
-        const activeConnections = parseFloat(latestStats.ActiveConnections) || 0;
-        
-        // Update displays
-        $('#avgLatency .text-cyperf-red').text('Server TCP: ' + formatNumber(tcpDataThroughput, 'bps') + 
-            ' | Conn Rate: ' + formatNumber(connectionRate, '/s') +
-            ' | Active: ' + formatNumber(activeConnections, ''));
+        // Update latency display
+        $('#avgLatency .text-cyperf-red').text('Server Average Latency: ' + avgLatency.toFixed(2) + ' ms');
     } catch (e) {
         console.error('Error parsing server stats:', e);
     }
@@ -508,33 +529,54 @@ function updateClientStats(stats) {
             stats = JSON.parse(stats);
         }
 
-        // Handle array format - use the latest entry for summary
-        let latestStats = stats;
-        if (Array.isArray(stats)) {
-            if (stats.length === 0) return;
-            latestStats = stats[stats.length - 1]; // Get the most recent entry
+        // Ensure it's an array
+        if (!Array.isArray(stats)) {
+            stats = [stats];
         }
+        
+        if (stats.length === 0) return;
 
-        // Extract throughput from Throughput field
-        const throughput = parseFloat(latestStats.Throughput) || 0;
-        const throughputTX = parseFloat(latestStats.ThroughputTX) || 0;
-        const throughputRX = parseFloat(latestStats.ThroughputRX) || 0;
+        // Collect all throughput values for average and peak calculation
+        let throughputValues = [];
+        let throughputTXValues = [];
+        let throughputRXValues = [];
+        let latencyValues = [];
+        
+        stats.forEach(entry => {
+            if (entry.Throughput !== undefined && entry.Throughput !== null) {
+                throughputValues.push(parseFloat(entry.Throughput));
+            }
+            if (entry.ThroughputTX !== undefined && entry.ThroughputTX !== null) {
+                throughputTXValues.push(parseFloat(entry.ThroughputTX));
+            }
+            if (entry.ThroughputRX !== undefined && entry.ThroughputRX !== null) {
+                throughputRXValues.push(parseFloat(entry.ThroughputRX));
+            }
+            if (entry.AverageConnectionLatency !== undefined && entry.AverageConnectionLatency !== null) {
+                latencyValues.push(parseFloat(entry.AverageConnectionLatency));
+            }
+        });
+        
+        // Calculate average throughput
+        const avgThroughput = throughputValues.length > 0 ? 
+            throughputValues.reduce((a, b) => a + b, 0) / throughputValues.length : 0;
+        
+        // Calculate peak throughput
+        const peakTX = throughputTXValues.length > 0 ? Math.max(...throughputTXValues) : 0;
+        const peakRX = throughputRXValues.length > 0 ? Math.max(...throughputRXValues) : 0;
+        
+        // Calculate average latency (in microseconds, convert to ms)
+        const avgLatency = latencyValues.length > 0 ? 
+            (latencyValues.reduce((a, b) => a + b, 0) / latencyValues.length) / 1000 : 0;
         
         // Update throughput displays
-        $('#avgThroughput .text-yellow-500').text('Client: ' + formatNumber(throughput, 'bps'));
+        $('#avgThroughput .text-yellow-500').text('Client: ' + formatNumber(avgThroughput, 'bps'));
         $('#peakThroughput .text-yellow-500').text('Client TX/RX: ' + 
-            formatNumber(throughputTX, 'bps') + ' / ' + 
-            formatNumber(throughputRX, 'bps'));
+            formatNumber(peakTX, 'bps') + ' / ' + 
+            formatNumber(peakRX, 'bps'));
 
-        // Extract and display CPS/Connection data if available
-        const tcpDataThroughput = parseFloat(latestStats.TCPDataThroughput) || 0;
-        const connectionRate = parseFloat(latestStats.ConnectionRate) || 0;
-        const activeConnections = parseFloat(latestStats.ActiveConnections) || 0;
-        
-        // Update displays
-        $('#avgLatency .text-yellow-500').text('Client TCP: ' + formatNumber(tcpDataThroughput, 'bps') + 
-            ' | Conn Rate: ' + formatNumber(connectionRate, '/s') +
-            ' | Active: ' + formatNumber(activeConnections, ''));
+        // Update latency display
+        $('#avgLatency .text-yellow-500').text('Client Average Latency: ' + avgLatency.toFixed(2) + ' ms');
     } catch (e) {
         console.error('Error parsing client stats:', e);
     }
