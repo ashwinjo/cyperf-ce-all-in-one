@@ -1032,6 +1032,9 @@ function exportToPDF() {
     });
 }
 
+// Track current test type to avoid unnecessary DOM updates
+let currentMetricsType = null;
+
 // Helper function to detect test type and show appropriate metrics
 function detectAndShowMetricsType(stats, source) {
     if (!stats || !Array.isArray(stats) || stats.length === 0) return;
@@ -1042,18 +1045,29 @@ function detectAndShowMetricsType(stats, source) {
                        firstEntry.hasOwnProperty('ConnectionsSucceeded') ||
                        firstEntry.hasOwnProperty('ConnectionsAccepted');
     
-    console.log('detectAndShowMetricsType:', { source, isCPSTest });
+    const detectedType = isCPSTest ? 'cps' : 'throughput';
     
-    if (isCPSTest) {
-        $('#throughputMetrics').addClass('hidden');
-        $('#cpsMetrics').removeClass('hidden');
-        // Update CPS metrics for this specific stats array, passing the source
-        updateCPSMetrics(stats, source);
-    } else {
-        $('#cpsMetrics').addClass('hidden');
-        $('#throughputMetrics').removeClass('hidden');
-        // Throughput metrics are already updated by updateServerStats/updateClientStats
+    console.log('detectAndShowMetricsType:', { source, isCPSTest, detectedType, currentMetricsType });
+    
+    // Only update DOM if the test type has changed
+    if (currentMetricsType !== detectedType) {
+        console.log('Switching metrics display from', currentMetricsType, 'to', detectedType);
+        currentMetricsType = detectedType;
+        
+        if (isCPSTest) {
+            $('#throughputMetrics').addClass('hidden');
+            $('#cpsMetrics').removeClass('hidden');
+        } else {
+            $('#cpsMetrics').addClass('hidden');
+            $('#throughputMetrics').removeClass('hidden');
+        }
     }
+    
+    // Update metrics data
+    if (isCPSTest) {
+        updateCPSMetrics(stats, source);
+    }
+    // Throughput metrics are already updated by updateServerStats/updateClientStats
 }
 
 // Function to update CPS metrics in the UI
