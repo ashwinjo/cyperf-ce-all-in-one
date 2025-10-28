@@ -644,7 +644,9 @@
     <!-- Performance Metrics -->
     <div id="performanceMetrics" class="mt-6 p-4 bg-gray-800 rounded-lg">
         <h4 class="text-lg font-semibold text-white mb-4">Performance Metrics</h4>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Throughput Test Metrics -->
+        <div id="throughputMetrics" class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Average Throughput -->
             <div class="bg-gray-700/50 p-4 rounded-lg">
                 <div class="text-sm text-gray-400 mb-2">Average Throughput</div>
@@ -665,6 +667,42 @@
             <div class="bg-gray-700/50 p-4 rounded-lg">
                 <div class="text-sm text-gray-400 mb-2">Average Latency</div>
                 <div id="avgLatency" class="text-lg font-semibold">
+                    <div class="text-cyperf-red">Server: -</div>
+                    <div class="text-yellow-500">Client: -</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CPS Test Metrics -->
+        <div id="cpsMetrics" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
+            <!-- Average Connection Rate -->
+            <div class="bg-gray-700/50 p-4 rounded-lg">
+                <div class="text-sm text-gray-400 mb-2">Average Connection Rate</div>
+                <div id="avgConnRate" class="text-lg font-semibold">
+                    <div class="text-cyperf-red">Server: -</div>
+                    <div class="text-yellow-500">Client: -</div>
+                </div>
+            </div>
+            <!-- Total Connections Succeeded -->
+            <div class="bg-gray-700/50 p-4 rounded-lg">
+                <div class="text-sm text-gray-400 mb-2">Total Connections Succeeded</div>
+                <div id="totalConnSuccess" class="text-lg font-semibold">
+                    <div class="text-cyperf-red">Server: -</div>
+                    <div class="text-yellow-500">Client: -</div>
+                </div>
+            </div>
+            <!-- Total Connections Failed -->
+            <div class="bg-gray-700/50 p-4 rounded-lg">
+                <div class="text-sm text-gray-400 mb-2">Total Connections Failed</div>
+                <div id="totalConnFailed" class="text-lg font-semibold">
+                    <div class="text-cyperf-red">Server: -</div>
+                    <div class="text-yellow-500">Client: -</div>
+                </div>
+            </div>
+            <!-- Highest Connection Latency -->
+            <div class="bg-gray-700/50 p-4 rounded-lg">
+                <div class="text-sm text-gray-400 mb-2">Highest Connection Latency</div>
+                <div id="highestConnLatency" class="text-lg font-semibold">
                     <div class="text-cyperf-red">Server: -</div>
                     <div class="text-yellow-500">Client: -</div>
                 </div>

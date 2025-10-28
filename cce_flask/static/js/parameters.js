@@ -462,6 +462,9 @@ function updateServerStats(stats) {
         console.error('Error parsing server stats:', e);
     }
 
+    // Detect test type and show/hide appropriate metrics
+    detectAndShowMetricsType(stats);
+    
     // Update server stats table
     const serverStatsTable = $('#serverStatsTable');
     if (serverStatsTable.length) {
@@ -581,6 +584,9 @@ function updateClientStats(stats) {
         console.error('Error parsing client stats:', e);
     }
 
+    // Detect test type and show/hide appropriate metrics (do this only once for client)
+    detectAndShowMetricsType(stats);
+    
     // Update client stats table
     const clientStatsTable = $('#clientStatsTable');
     if (clientStatsTable.length) {
@@ -1016,4 +1022,77 @@ function exportToPDF() {
         exportBtn.prop('disabled', false);
         showAlert('Failed to generate PDF report. Please try again.', 'error');
     });
+}
+
+// Helper function to detect test type and show appropriate metrics
+function detectAndShowMetricsType(stats) {
+    if (!stats || !Array.isArray(stats) || stats.length === 0) return;
+    
+    // Check if this is a CPS test by looking for CPS-specific fields
+    const firstEntry = stats[0];
+    const isCPSTest = firstEntry.hasOwnProperty('ConnectionRate') || 
+                       firstEntry.hasOwnProperty('ConnectionsSucceeded') ||
+                       firstEntry.hasOwnProperty('ConnectionsAccepted');
+    
+    if (isCPSTest) {
+        $('#throughputMetrics').addClass('hidden');
+        $('#cpsMetrics').removeClass('hidden');
+        updateCPSMetrics(stats);
+    } else {
+        $('#cpsMetrics').addClass('hidden');
+        $('#throughputMetrics').removeClass('hidden');
+        // Throughput metrics are already updated by updateServerStats/updateClientStats
+    }
+}
+
+// Function to update CPS metrics in the UI
+function updateCPSMetrics(stats) {
+    if (!stats || !Array.isArray(stats) || stats.length === 0) return;
+    
+    try {
+        let connRates = [];
+        let latencyValues = [];
+        let successLast = 0;
+        let failedValues = [];
+        
+        stats.forEach(entry => {
+            // Collect ConnectionRate values for average
+            if (entry.ConnectionRate !== undefined && entry.ConnectionRate !== null) {
+                connRates.push(parseFloat(entry.ConnectionRate));
+            }
+            // Get last value of ConnectionsSucceeded/ConnectionsAccepted
+            if (entry.ConnectionsSucceeded !== undefined && entry.ConnectionsSucceeded !== null) {
+                successLast = parseInt(entry.ConnectionsSucceeded);
+            } else if (entry.ConnectionsAccepted !== undefined && entry.ConnectionsAccepted !== null) {
+                successLast = parseInt(entry.ConnectionsAccepted);
+            }
+            // Collect all ConnectionsFailed values for sum
+            if (entry.ConnectionsFailed !== undefined && entry.ConnectionsFailed !== null) {
+                failedValues.push(parseInt(entry.ConnectionsFailed));
+            }
+            // Collect AverageConnectionLatency for highest value
+            if (entry.AverageConnectionLatency !== undefined && entry.AverageConnectionLatency !== null) {
+                latencyValues.push(parseFloat(entry.AverageConnectionLatency) / 1000); // Convert to ms
+            }
+        });
+        
+        // Calculate metrics
+        const avgConnRate = connRates.length > 0 ? 
+            connRates.reduce((a, b) => a + b, 0) / connRates.length : 0;
+        const failedSum = failedValues.reduce((a, b) => a + b, 0);
+        const highestLatency = latencyValues.length > 0 ? Math.max(...latencyValues) : 0;
+        
+        // Determine if this is server or client stats
+        const isServerStats = stats[0].hasOwnProperty('ConnectionsAccepted');
+        const className = isServerStats ? '.text-cyperf-red' : '.text-yellow-500';
+        const prefix = isServerStats ? 'Server: ' : 'Client: ';
+        
+        // Update UI
+        $(`#avgConnRate ${className}`).text(prefix + avgConnRate.toFixed(2) + ' /s');
+        $(`#totalConnSuccess ${className}`).text(prefix + successLast.toLocaleString());
+        $(`#totalConnFailed ${className}`).text(prefix + failedSum.toLocaleString());
+        $(`#highestConnLatency ${className}`).text(prefix + highestLatency.toFixed(2) + ' ms');
+    } catch (e) {
+        console.error('Error parsing CPS stats:', e);
+    }
 }
