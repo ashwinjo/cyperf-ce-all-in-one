@@ -174,25 +174,25 @@
                 
                 <!-- CPS Test Metrics -->
                 <div id="cpsMetrics" class="hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- TCP Connection Rate -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Average Connection Rate -->
                         <div class="stats-panel">
-                            <div class="stats-label text-cyperf-red font-bold mb-3">TCP Connection Rate</div>
+                            <div class="stats-label text-cyperf-red font-bold mb-3">Average Connection Rate</div>
                             <div class="space-y-2">
                                 <div class="flex justify-between">
-                                    <span class="text-gray-400">Avg Client Rate:</span>
+                                    <span class="text-gray-400">Client:</span>
                                     <span class="stats-value text-sm" id="avgClientConnRate">0 /s</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-400">Avg Server Rate:</span>
+                                    <span class="text-gray-400">Server:</span>
                                     <span class="stats-value text-sm" id="avgServerConnRate">0 /s</span>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Connections Successful -->
+                        <!-- Total Connections Succeeded -->
                         <div class="stats-panel">
-                            <div class="stats-label text-cyperf-red font-bold mb-3">Connections Successful</div>
+                            <div class="stats-label text-cyperf-red font-bold mb-3">Total Connections Succeeded</div>
                             <div class="space-y-2">
                                 <div class="flex justify-between">
                                     <span class="text-gray-400">Client:</span>
@@ -205,9 +205,9 @@
                             </div>
                         </div>
                         
-                        <!-- Connections Failed -->
+                        <!-- Total Connections Failed -->
                         <div class="stats-panel">
-                            <div class="stats-label text-cyperf-red font-bold mb-3">Connections Failed</div>
+                            <div class="stats-label text-cyperf-red font-bold mb-3">Total Connections Failed</div>
                             <div class="space-y-2">
                                 <div class="flex justify-between">
                                     <span class="text-gray-400">Client:</span>
@@ -216,6 +216,21 @@
                                 <div class="flex justify-between">
                                     <span class="text-gray-400">Server:</span>
                                     <span class="stats-value text-sm" id="serverConnFailed">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Highest Connection Latency -->
+                        <div class="stats-panel">
+                            <div class="stats-label text-cyperf-red font-bold mb-3">Highest Connection Latency</div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Client:</span>
+                                    <span class="stats-value text-sm" id="highestClientLatency">0 ms</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Server:</span>
+                                    <span class="stats-value text-sm" id="highestServerLatency">0 ms</span>
                                 </div>
                             </div>
                         </div>

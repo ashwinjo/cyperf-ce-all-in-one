@@ -524,10 +524,12 @@ function updateCPSMetrics(statsData) {
     
     let clientConnRates = [];
     let serverConnRates = [];
-    let clientSuccessTotal = 0;
-    let serverSuccessTotal = 0;
-    let clientFailedTotal = 0;
-    let serverFailedTotal = 0;
+    let clientLatencyValues = [];
+    let serverLatencyValues = [];
+    let clientSuccessLast = 0;
+    let serverSuccessLast = 0;
+    let clientFailedValues = [];
+    let serverFailedValues = [];
     
     // Process stats history
     statsHistory.forEach(entry => {
@@ -536,40 +538,63 @@ function updateCPSMetrics(statsData) {
         
         // Process client stats
         clientStats.forEach(stat => {
-            if (stat.ConnectionRate) {
+            // Collect ConnectionRate values for average
+            if (stat.ConnectionRate !== undefined && stat.ConnectionRate !== null) {
                 clientConnRates.push(parseFloat(stat.ConnectionRate));
             }
-            if (stat.ConnectionsSucceeded) {
-                clientSuccessTotal = Math.max(clientSuccessTotal, parseInt(stat.ConnectionsSucceeded));
+            // Get last value of ConnectionsSucceeded
+            if (stat.ConnectionsSucceeded !== undefined && stat.ConnectionsSucceeded !== null) {
+                clientSuccessLast = parseInt(stat.ConnectionsSucceeded);
             }
-            if (stat.ConnectionsFailed) {
-                clientFailedTotal = Math.max(clientFailedTotal, parseInt(stat.ConnectionsFailed));
+            // Collect all ConnectionsFailed values for sum
+            if (stat.ConnectionsFailed !== undefined && stat.ConnectionsFailed !== null) {
+                clientFailedValues.push(parseInt(stat.ConnectionsFailed));
+            }
+            // Collect AverageConnectionLatency for highest value
+            if (stat.AverageConnectionLatency !== undefined && stat.AverageConnectionLatency !== null) {
+                clientLatencyValues.push(parseFloat(stat.AverageConnectionLatency) / 1000); // Convert to ms
             }
         });
         
         // Process server stats
         serverStats.forEach(stat => {
-            if (stat.ConnectionRate) {
+            // Collect ConnectionRate values for average
+            if (stat.ConnectionRate !== undefined && stat.ConnectionRate !== null) {
                 serverConnRates.push(parseFloat(stat.ConnectionRate));
             }
-            if (stat.ConnectionsAccepted) {
-                serverSuccessTotal = Math.max(serverSuccessTotal, parseInt(stat.ConnectionsAccepted));
+            // Get last value of ConnectionsAccepted (server equivalent of ConnectionsSucceeded)
+            if (stat.ConnectionsAccepted !== undefined && stat.ConnectionsAccepted !== null) {
+                serverSuccessLast = parseInt(stat.ConnectionsAccepted);
             }
-            if (stat.ConnectionsFailed) {
-                serverFailedTotal = Math.max(serverFailedTotal, parseInt(stat.ConnectionsFailed));
+            // Collect all ConnectionsFailed values for sum
+            if (stat.ConnectionsFailed !== undefined && stat.ConnectionsFailed !== null) {
+                serverFailedValues.push(parseInt(stat.ConnectionsFailed));
+            }
+            // Collect AverageConnectionLatency for highest value
+            if (stat.AverageConnectionLatency !== undefined && stat.AverageConnectionLatency !== null) {
+                serverLatencyValues.push(parseFloat(stat.AverageConnectionLatency) / 1000); // Convert to ms
             }
         });
     });
     
-    // Update UI
+    // Calculate metrics
+    // 1. Average Connection Rate
     $('#avgClientConnRate').text(formatConnectionRate(calculateAverage(clientConnRates)));
     $('#avgServerConnRate').text(formatConnectionRate(calculateAverage(serverConnRates)));
     
-    $('#clientConnSuccess').text(formatNumber(clientSuccessTotal));
-    $('#serverConnSuccess').text(formatNumber(serverSuccessTotal));
+    // 2. Total Connections Succeeded (last value)
+    $('#clientConnSuccess').text(formatNumber(clientSuccessLast));
+    $('#serverConnSuccess').text(formatNumber(serverSuccessLast));
     
-    $('#clientConnFailed').text(formatNumber(clientFailedTotal));
-    $('#serverConnFailed').text(formatNumber(serverFailedTotal));
+    // 3. Total Connections Failed (sum of all values)
+    const clientFailedSum = clientFailedValues.reduce((a, b) => a + b, 0);
+    const serverFailedSum = serverFailedValues.reduce((a, b) => a + b, 0);
+    $('#clientConnFailed').text(formatNumber(clientFailedSum));
+    $('#serverConnFailed').text(formatNumber(serverFailedSum));
+    
+    // 4. Highest Connection Latency
+    $('#highestClientLatency').text(formatLatency(calculateMax(clientLatencyValues)));
+    $('#highestServerLatency').text(formatLatency(calculateMax(serverLatencyValues)));
 }
 
 function resetPerformanceMetrics() {
@@ -587,6 +612,7 @@ function resetCPSMetrics() {
     $('#avgClientConnRate, #avgServerConnRate').text('0 /s');
     $('#clientConnSuccess, #serverConnSuccess').text('0');
     $('#clientConnFailed, #serverConnFailed').text('0');
+    $('#highestClientLatency, #highestServerLatency').text('0 ms');
 }
 
 // Helper functions
